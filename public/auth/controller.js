@@ -3,7 +3,7 @@ module.exports = ['$scope', '$http', function($scope, $http){
   $scope.state = {
     status: '',
     message: '',
-    username: '',
+    email: '',
     password: '',
     loading: false
   };
@@ -13,9 +13,9 @@ module.exports = ['$scope', '$http', function($scope, $http){
   $scope.login = function(){
     $scope.state.loading = true;
     $http
-      .post('/login', {username: $scope.state.username, password: $scope.state.password})
+      .post('/login', {email: $scope.state.email, password: $scope.state.password})
       .success(function(data){
-        changeStatus('success', 'Login Successful! Welcome, ' + data.user.email, 2500);
+        changeStatus('success', 'Login Successful! Welcome, ' + data.user.local.email, 2500);
         $scope.state.loading = false;
       })
       .error(function(data){
@@ -27,9 +27,9 @@ module.exports = ['$scope', '$http', function($scope, $http){
   $scope.signup = function(){
     $scope.state.loading = true;
     $http
-      .post('/signup', {username: $scope.state.username, password: $scope.state.password})
+      .post('/signup', {email: $scope.state.email, password: $scope.state.password})
       .success(function(data){
-        changeStatus('success', 'Signup Successful! Welcome, ' + data.user.email, 2500);
+        changeStatus('success', 'Signup Successful! Welcome, ' + data.user.local.email, 2500);
         $scope.state.loading = false;
       })
       .error(function(data){
