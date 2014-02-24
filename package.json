@@ -1,5 +1,5 @@
 {
-  "name": "not-a-sock-drawer",
+  "name": "capstone",
   "version": "0.0.0",
   "dependencies": {
     "express": "3.x",
@@ -27,7 +27,14 @@
     "mongoose-validate": "0.0.5",
     "socket.io": "~0.9.16",
     "browserify": "~2.36.0",
-    "grunt-browserify": "~1.2.11"
+    "grunt-browserify": "~1.2.11",
+    "connect-flash": "^0.1.1",
+    "bcrypt-nodejs": "0.0.3",
+    "passport-local": "^0.1.6",
+    "passport": "^0.2.0",
+    "passport-twitter": "^1.0.2",
+    "passport-facebook": "^1.0.2",
+    "passport-google-oauth": "^0.1.5"
   },
   "engines": {
     "node": ">=0.8.0"

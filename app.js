@@ -6,7 +6,9 @@ var express         = require('express'),
   rmodel            = require('./lib/rmodel'),
   connectLivereload = require('connect-livereload'),
   socketIO          = require('socket.io'),
-  autoDB            = require('./lib/auto-db');
+  autoDB            = require('./lib/auto-db'),
+  passport          = require('passport'),
+  flash 	          = require('connect-flash');
 
 require('express-mongoose');
 
@@ -21,7 +23,7 @@ var io = socketIO.listen(server);
 app.set('port',       process.env.PORT || 8000);
 app.set('env',        process.env.NODE_ENV || 'development');
 app.set('moreToLog',  '');
-app.set('mongoURI',   process.env.MONGOLAB_URI || 'mongodb://localhost:27017/not-a-sock-drawer');
+app.set('mongoURI',   process.env.MONGOLAB_URI || 'mongodb://localhost:27017/capstone');
 app.set('routesDir',  path.join(__dirname, 'routes'));
 app.set('modelsDir',  path.join(__dirname, 'models'));
 app.set('tmpDir',     '.tmp');
@@ -52,25 +54,53 @@ conn.once('open', function(){
   var modelsToLoad = rmodel(app.get('modelsDir'));
   var autoLoadModels = {};
   modelsToLoad.forEach(function(v){
-    var metaModel = require(path.join(app.get('modelsDir'),v));
-    if(metaModel.hasOwnProperty('name') && metaModel.hasOwnProperty('schema')){
-      mongoose.model(metaModel.name, new mongoose.Schema(metaModel.schema));
-      if(metaModel.hasOwnProperty('autoLoad')){
-        if(metaModel.autoLoad === true)
-          metaModel.autoLoad = {};
-        if(typeof metaModel.autoLoad === 'object')
-          autoLoadModels[metaModel.name] = metaModel.autoLoad;
+    var metaModel = require(path.join(app.get('modelsDir'),v)),
+      schema = new mongoose.Schema(metaModel.schema);
+
+    if(metaModel.hasOwnProperty('autoLoad')){
+      if(metaModel.autoLoad === true)
+        metaModel.autoLoad = {};
+      if(typeof metaModel.autoLoad === 'object')
+        autoLoadModels[metaModel.name] = metaModel.autoLoad;
+    }
+
+    if(metaModel.hasOwnProperty('methods') && typeof metaModel.methods === 'object'){
+      for(var methodName in metaModel.methods){
+        if(metaModel.methods.hasOwnProperty(methodName)){
+          schema.methods[methodName] = metaModel.methods[methodName];
+        }
       }
     }
+
+    if(metaModel.hasOwnProperty('statics') && typeof metaModel.statics === 'object'){
+      for(var staticName in metaModel.statics){
+        if(metaModel.statics.hasOwnProperty(staticName)){
+          schema.statics[staticName] = metaModel.statics[staticName];
+        }
+      }
+    }
+
+    mongoose.model(metaModel.name, schema);
   });
 
-  if(app.get('env') === 'development')
+  //Configure Passport
+  require('./config/passport')(passport); // pass passport for configuration
+
+  if(app.get('env') === 'development'){
     app.use(connectLivereload());
+    app.use(express.logger('dev'));
+  }
 
   app.use(express.json());
   app.use(express.urlencoded());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
+
+  app.use(express.session({ secret: '64vg9u8gkwdv32he4ilktc1uryoa5hvhjvn5u6vog2is49iqvmwz8zw61v' })); // session secret
+  app.use(flash()); // use connect-flash for flash messages stored in session
+  app.use(passport.initialize());
+  app.use(passport.session()); // persistent login sessions
+
   app.use(app.router);
   app.use(rroute(app.get('routesDir')));
 
