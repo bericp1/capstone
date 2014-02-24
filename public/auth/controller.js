@@ -15,11 +15,11 @@ module.exports = ['$scope', '$http', function($scope, $http){
     $http
       .post('/login', {email: $scope.state.email, password: $scope.state.password})
       .success(function(data){
-        changeStatus('success', 'Login Successful! Welcome, ' + data.user.local.email, 2500);
+        changeStatus('success', 'Login Successful! Welcome, ' + data.user.local.email);
         $scope.state.loading = false;
       })
       .error(function(data){
-        changeStatus('danger', 'Login Failed!', data.error, 2500);
+        changeStatus('danger', 'Login Failed!', data.error);
         $scope.state.loading = false;
       });
   };
@@ -29,11 +29,11 @@ module.exports = ['$scope', '$http', function($scope, $http){
     $http
       .post('/signup', {email: $scope.state.email, password: $scope.state.password})
       .success(function(data){
-        changeStatus('success', 'Signup Successful! Welcome, ' + data.user.local.email, 2500);
+        changeStatus('success', 'Signup Successful! Welcome, ' + data.user.local.email);
         $scope.state.loading = false;
       })
       .error(function(data){
-        changeStatus('danger', 'Signup Failed!', data.error, 2500);
+        changeStatus('danger', 'Signup Failed!', data.error);
         $scope.state.loading = false;
       });
   };

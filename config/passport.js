@@ -39,4 +39,28 @@ module.exports = function(passport) {
       });
     }
   ));
+
+
+  passport.use('local-login', new LocalStrategy({
+      usernameField : 'email',
+      passwordField : 'password'
+    },
+    function(email, password, done) {
+      User.findOne({ 'local.email' :  email }, function(err, user) {
+        if (err)
+          return done(err);
+
+        console.log('email:', email, 'user:', user);
+
+        if (!user)
+          return done(null, false, {error:'A user with that email doesn\'t exist.'});
+
+        if (!user.validPassword(password))
+          return done(null, false, {error:'Incorrect password.'});
+
+        return done(null, user);
+      });
+    }
+  ));
+
 };

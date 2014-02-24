@@ -13,4 +13,15 @@ app.post('/signup',
   }
 );
 
+app.post('/login',
+  passportHandler('local-login'),
+  function(req,res){
+    res.type('json');
+    res.send({
+      status: 'ok',
+      user: req.user
+    });
+  }
+);
+
 module.exports = app;

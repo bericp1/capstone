@@ -2,11 +2,11 @@
     <div class="row-fluid">
         <div class="span4 offset4">
             <h2>Login</h2>
+            <div class="status-box text-center" ng-class="'text-'+state.status" ng-bind="state.message"></div>
             <form class="well">
-                <div class="status-box text-center" ng-class="'text-'+state.status" ng-bind="state.message"></div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" class="form-control" id="email" ng-model="state.email" placeholder="email">
+                    <input type="text" class="form-control" id="email" ng-model="state.email" placeholder="email">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
