@@ -7,7 +7,8 @@ app.post('/signup',
   function(req,res){
     res.type('json');
     res.send({
-      status: 'ok'
+      status: 'ok',
+      user: req.user
     });
   }
 );

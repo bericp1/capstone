@@ -1,0 +1,29 @@
+<div class="container login-container">
+    <div class="row-fluid">
+        <div class="span4 offset4">
+            <h2>Login</h2>
+            <form class="well">
+                <div class="status-box text-center" ng-class="'text-'+state.status" ng-bind="state.message"></div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" class="form-control" id="email" ng-model="state.email" placeholder="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" ng-model="state.password" placeholder="password">
+                </div>
+                <button class="btn btn-primary btn-block" ng-click="login()" ng-disabled="state.loading">Login</button>
+            </form>
+            <h3>Or use...</h3>
+            <div class="well text-center">
+                <a class="btn btn-default" href="#">Google</a>
+                <a class="btn btn-default" href="#">Facebook</a>
+                <a class="btn btn-default" href="#">Twitter</a>
+            </div>
+            <h3>Or...</h3>
+            <div class="text-center">
+                <a href="#/signup" class="btn btn-lg btn-block btn-info">Signup</a>
+            </div>
+        </div>
+    </div>
+</div>
