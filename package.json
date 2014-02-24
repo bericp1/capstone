@@ -28,7 +28,6 @@
     "socket.io": "~0.9.16",
     "browserify": "~2.36.0",
     "grunt-browserify": "~1.2.11",
-    "connect-flash": "^0.1.1",
     "bcrypt-nodejs": "0.0.3",
     "passport-local": "^0.1.6",
     "passport": "^0.2.0",

@@ -1,5 +1,7 @@
 module.exports = ['$scope', '$http', function($scope, $http){
 
+  'use strict';
+
   $scope.state = {
     status: '',
     message: '',

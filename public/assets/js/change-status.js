@@ -1,4 +1,6 @@
 module.exports = function($scope, state){
+  'use strict';
+
   if(typeof state !== 'string'){
     state = 'state';
   }

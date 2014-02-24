@@ -7,8 +7,7 @@ var express         = require('express'),
   connectLivereload = require('connect-livereload'),
   socketIO          = require('socket.io'),
   autoDB            = require('./lib/auto-db'),
-  passport          = require('passport'),
-  flash 	          = require('connect-flash');
+  passport          = require('passport');
 
 require('express-mongoose');
 
@@ -97,7 +96,6 @@ conn.once('open', function(){
   app.use(express.cookieParser());
 
   app.use(express.session({ secret: '64vg9u8gkwdv32he4ilktc1uryoa5hvhjvn5u6vog2is49iqvmwz8zw61v' })); // session secret
-  app.use(flash()); // use connect-flash for flash messages stored in session
   app.use(passport.initialize());
   app.use(passport.session()); // persistent login sessions
 
