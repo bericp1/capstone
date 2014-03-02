@@ -4,11 +4,11 @@
             <h2>Login</h2>
             <div class="status-box text-center" ng-class="'text-'+state.status" ng-bind="state.message"></div>
             <form class="well">
-                <div class="form-group">
+                <div class="form-group" ng-class="{'has-error': state.bad.indexOf('email')>=0}">
                     <label for="email">Email Address</label>
                     <input type="text" class="form-control" id="email" ng-model="state.email" placeholder="email">
                 </div>
-                <div class="form-group">
+                <div class="form-group" ng-class="{'has-error': state.bad.indexOf('password')>=0}">
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" ng-model="state.password" placeholder="password">
                 </div>
@@ -16,9 +16,9 @@
             </form>
             <h3>Or use...</h3>
             <div class="well text-center">
-                <a class="btn btn-default" href="#">Google</a>
-                <a class="btn btn-default" href="#">Facebook</a>
-                <a class="btn btn-default" href="#">Twitter</a>
+                <a class="btn btn-default" href="">Google</a>
+                <a class="btn btn-default" href="">Facebook</a>
+                <a class="btn btn-default" href="">Twitter</a>
             </div>
             <h3>Or...</h3>
             <div class="text-center">

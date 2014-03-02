@@ -1,5 +1,7 @@
 var mongoose      = require('mongoose'),
   LocalStrategy   = require('passport-local').Strategy,
+  KeyStrategy     = require('passport-localapikey').Strategy,
+  errors          = require('../lib/auth/errors'),
   User       		  = mongoose.model('User');
 
 module.exports = function(passport) {
@@ -14,7 +16,7 @@ module.exports = function(passport) {
     });
   });
 
-  passport.use('local-signup', new LocalStrategy({
+  passport.use('login', new LocalStrategy({
       usernameField : 'email',
       passwordField : 'password'
     },
@@ -23,41 +25,37 @@ module.exports = function(passport) {
         if (err)
           return done(err);
 
-        if (user) {
-          return done(null, false, {error:'Email already taken.'});
-        } else {
+        if (!user)
+          return done(null, false, {error:errors.email.bad});
 
-          var newUser            = new User();
-          newUser.local.email    = email;
-          newUser.local.password = User.generateHash(password);
+        if (!user.validPassword(password))
+          return done(null, false, {error:errors.password.bad});
 
-          return newUser.save(function(err) {
-            if(err) return done(err);
-            return done(null, newUser);
+        return User.generateToken(function(err, token) {
+          if (err)return done(err);
+          user.local.token.value = token;
+          user.local.token.expires = Date.now() + require('../config/auth').tokenTTL;
+          return user.save(function (err) {
+            if (err) return done(err);
+            else return done(null, user);
           });
-        }
+        });
       });
     }
   ));
 
-
-  passport.use('local-login', new LocalStrategy({
-      usernameField : 'email',
-      passwordField : 'password'
+  passport.use('check', new KeyStrategy(
+    {
+      apiKeyField: 'token'
     },
-    function(email, password, done) {
-      User.findOne({ 'local.email' :  email }, function(err, user) {
-        if (err)
+    function(token, done){
+      User.findOne({ 'local.token.value': token }, function(err, user){
+        if(err)
           return done(err);
-
-        console.log('email:', email, 'user:', user);
-
-        if (!user)
-          return done(null, false, {error:'A user with that email doesn\'t exist.'});
-
-        if (!user.validPassword(password))
-          return done(null, false, {error:'Incorrect password.'});
-
+        if(!user)
+          return done(null, false, {error:errors.key.invalid});
+        if(!user.validToken())
+          return done(null, false, {error:errors.key.expired});
         return done(null, user);
       });
     }

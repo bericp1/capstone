@@ -95,9 +95,7 @@ conn.once('open', function(){
   app.use(express.methodOverride());
   app.use(express.cookieParser());
 
-  app.use(express.session({ secret: '64vg9u8gkwdv32he4ilktc1uryoa5hvhjvn5u6vog2is49iqvmwz8zw61v' })); // session secret
   app.use(passport.initialize());
-  app.use(passport.session()); // persistent login sessions
 
   app.use(app.router);
   app.use(rroute(app.get('routesDir')));
