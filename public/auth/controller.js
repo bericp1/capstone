@@ -34,7 +34,7 @@ module.exports = ['$scope', '$http', function($scope, $http){
     return function(data){
       changeStatus('success', status + ' Token: ' + data.token.substr(0,10) + '...');
       $scope.state.loading = false;
-    }
+    };
   };
 
   //TODO Move login/signup/logout logic to a service/factory/whatever (uses localstorage)
