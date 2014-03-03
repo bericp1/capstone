@@ -40,7 +40,11 @@ module.exports = ['$http', function($http){
   me.signup = function(data, success, error){
     return $http
       .post('/auth/signup', data)
-      .success(success)
+      .success(function(data){
+        me.token = data.token;
+        me.user = data.user;
+        success(data);
+      })
       .error(error);
   };
 

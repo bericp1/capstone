@@ -1,4 +1,4 @@
-module.exports = ['$scope', 'AuthUserService', function($scope, UserService){
+module.exports = ['$scope', '$routeParams', '$location', 'AuthUserService', function($scope, $routeParams, $location, UserService){
 
   'use strict';
 
@@ -37,6 +37,9 @@ module.exports = ['$scope', 'AuthUserService', function($scope, UserService){
       }
       changeStatus('success', status);
       $scope.state.loading = false;
+      if(typeof $routeParams['return'] === 'string'){
+        $location.url($routeParams['return']);
+      }
     };
   };
 
@@ -68,6 +71,10 @@ module.exports = ['$scope', 'AuthUserService', function($scope, UserService){
       handleSuccess('Signup Successful!'),
       handleError('Signup Failed!')
     );
+  };
+
+  $scope.change = function(to){
+    $location.url($location.url().replace(/\/auth\/[a-z]+(\?)?/, '/auth/' + to + '$1'));
   };
 
 }];

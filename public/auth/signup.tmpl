@@ -17,16 +17,16 @@
                     <input type="text" class="form-control" id="signupName" ng-model="state.name" placeholder="name">
                 </div>
                 <button class="btn btn-primary btn-block" ng-click="signup()" ng-disabled="state.loading">Signup</button>
-            </form>
+            </form><!--
             <h3>Or use...</h3>
             <div class="well text-center">
                 <a class="btn btn-default" href="">Google</a>
                 <a class="btn btn-default" href="">Facebook</a>
                 <a class="btn btn-default" href="">Twitter</a>
-            </div>
+            </div>-->
             <h3>Or...</h3>
             <div class="text-center">
-                <a href="#/login" class="btn btn-lg btn-block btn-info">Login</a>
+                <a href="" class="btn btn-lg btn-block btn-info" ng-click="change('login')">Login</a>
             </div>
         </div>
     </div>

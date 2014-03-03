@@ -1,0 +1,26 @@
+<div class="game-play-container container">
+    <div class="row-fluid top-row">
+        <div class="span4 offset2">
+            <h1>Play!</h1>
+        </div>
+        <div class="span4 account-box">
+            <!-- TODO: Directive-ify -->
+            <div class="well">
+                <div ng-show="state.user===false">
+                    <a class="btn btn-primary" href="#/auth/login?return=/game/play">Login</a>
+                    <a class="btn btn-info" href="#/auth/signup?return=/game/play">Signup</a>
+                </div>
+                <div ng-hide="state.user===false">
+                    <span>Welcome, <strong>{{state.user.local.name}}</strong>!&nbsp;&nbsp;</span>
+                    <a href="" class="btn btn-danger" ng-click="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span8 offset2 text-center game-play-main well">
+            <img src="/assets/images/character_front.svg">
+            <img src="/assets/images/character_side_neutral.svg">
+        </div>
+    </div>
+</div>
