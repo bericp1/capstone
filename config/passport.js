@@ -34,7 +34,7 @@ module.exports = function(passport) {
         return User.generateToken(function(err, token) {
           if (err)return done(err);
           user.local.token.value = token;
-          user.local.token.expires = Date.now() + require('../config/auth').tokenTTL;
+          user.local.token.expires = Date.now() + require('./auth').tokenTTL;
           return user.save(function (err) {
             if (err) return done(err);
             else return done(null, user);
@@ -53,9 +53,9 @@ module.exports = function(passport) {
         if(err)
           return done(err);
         if(!user)
-          return done(null, false, {error:errors.key.invalid});
+          return done(null, false, {error:errors.token.invalid});
         if(!user.validToken())
-          return done(null, false, {error:errors.key.expired});
+          return done(null, false, {error:errors.token.expired});
         return done(null, user);
       });
     }

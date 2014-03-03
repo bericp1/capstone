@@ -1,6 +1,7 @@
 var express = require('express'),
-  passportHandler = require('../lib/auth/authenticate'),
+  authenticate = require('../lib/auth/authenticate'),
   signup = require('../lib/auth/signup'),
+  logout = require('../lib/auth/logout'),
   app = express();
 
 app.post('/signup',
@@ -14,22 +15,23 @@ app.post('/signup',
 );
 
 app.post('/login',
-  passportHandler('login'),
+  authenticate('login'),
   function(req,res){
+    delete req.user.password;
     res.send({
       status: 'ok',
-      token: req.user.local.token.value
+      token: req.user.local.token.value,
+      user: req.user
     });
   }
 );
 
-app.get('/check',
-  passportHandler(),
-  function(req, res){
-    delete req.user.local.password;
+app.post('/logout',
+  authenticate('check'),
+  logout,
+  function(req,res){
     res.send({
-      status: 'ok',
-      user: req.user
+      status: 'ok'
     });
   }
 );

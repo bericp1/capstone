@@ -1,4 +1,4 @@
-module.exports = ['$scope', '$http', function($scope, $http){
+module.exports = ['$scope', 'AuthUserService', function($scope, UserService){
 
   'use strict';
 
@@ -14,7 +14,7 @@ module.exports = ['$scope', '$http', function($scope, $http){
 
   var changeStatus = require('../assets/js/change-status')($scope);
 
-  var reset = function(){
+  var loading = function(){
     $scope.state.loading = true;
     $scope.state.bad = [];
     changeStatus('none');
@@ -32,27 +32,42 @@ module.exports = ['$scope', '$http', function($scope, $http){
 
   var handleSuccess = function(status){
     return function(data){
-      changeStatus('success', status + ' Token: ' + data.token.substr(0,10) + '...');
+      if(typeof data.token === 'string'){
+        status = status + ' Token: ' + data.token.substr(0,10) + '...';
+      }
+      changeStatus('success', status);
       $scope.state.loading = false;
     };
   };
 
-  //TODO Move login/signup/logout logic to a service/factory/whatever (uses localstorage)
-
   $scope.login = function(){
-    reset();
-    $http
-      .post('/auth/login', {email: $scope.state.email, password: $scope.state.password})
-      .success(handleSuccess('Login Successful!'))
-      .error(handleError('Login Failed!'));
+    loading();
+    UserService.login(
+      $scope.state.email, $scope.state.password,
+      handleSuccess('Login Successful!'),
+      handleError('Login Failed!')
+    );
+  };
+
+  $scope.logout = function(){
+    loading();
+    UserService.logout(
+      handleSuccess('Logout Successful!'),
+      handleError('Logout Failed!')
+    );
   };
 
   $scope.signup = function(){
-    reset();
-    $http
-      .post('/auth/signup', {email: $scope.state.email, password: $scope.state.password, name: $scope.state.name})
-      .success(handleSuccess('Signup Successful!'))
-      .error(handleError('Signup Failed!'));
+    loading();
+    UserService.signup(
+      {
+        email: $scope.state.email,
+        password: $scope.state.password,
+        name: $scope.state.name
+      },
+      handleSuccess('Signup Successful!'),
+      handleError('Signup Failed!')
+    );
   };
 
 }];
