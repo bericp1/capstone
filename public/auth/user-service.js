@@ -22,10 +22,10 @@ module.exports = ['$http', function($http){
   };
 
   me.logout = function(success, error){
-    if(typeof success != "function"){
+    if(typeof success !== 'function'){
       success = function(){};
     }
-    if(typeof error != "function"){
+    if(typeof error !== 'function'){
       error = function(){};
     }
     return $http.post('/auth/logout', {token: me.token})
