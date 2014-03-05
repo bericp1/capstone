@@ -1,10 +1,23 @@
-<div class="well">
-    <div ng-show="state.user===false">
-        <a class="btn btn-primary" href="#/auth/login?{{returnPath}}">Login</a>
-        <a class="btn btn-info" href="#/auth/signup?{{returnPath}}">Signup</a>
+<div>
+    <div ng-show="state.user===false" class="btn-group">
+        <a class="btn btn-primary" href="#/auth/login?{{returnPath}}">
+            <span class="glyphicon glyphicon-log-in"></span> Login
+        </a>
+        <a class="btn btn-info" href="#/auth/signup?{{returnPath}}">
+            <span class="glyphicon glyphicon-plus"></span> Signup
+        </a>
     </div>
     <div ng-hide="state.user===false">
-        <span>Welcome, <strong>{{state.user.local.name}}</strong>!&nbsp;&nbsp;</span>
-        <a href="" class="btn btn-danger" ng-click="logout()">Logout</a>
+        <div class="btn-group">
+            <a href="#/auth/user" class="btn btn-info">
+                <span class="glyphicon glyphicon-user"></span> <span ng-bind="state.user.local.name"></span>
+            </a>
+            <a href="#/game/saves" class="btn btn-default">
+                <span class="glyphicon glyphicon-save"></span> Game Saves
+            </a>
+            <a href="" class="btn btn-danger" ng-click="logout()">
+                <span class="glyphicon glyphicon-log-in"></span> Logout
+            </a>
+        </div>
     </div>
 </div>
