@@ -1,4 +1,4 @@
-module.exports = ['$http', function($http){
+module.exports = ['$rootScope', '$http', '$cookies', function($root, $http, $cookies){
 
   'use strict';
 
@@ -6,6 +6,10 @@ module.exports = ['$http', function($http){
 
   me.token = false;
   me.user = false;
+
+  $root.$watch(function(){return me.token;}, function(){
+    $cookies.authToken = me.token;
+  });
 
   var genericRequest = function(path, payload, success, error){
     if(typeof success !== 'function'){
@@ -23,6 +27,12 @@ module.exports = ['$http', function($http){
       })
       .error(error);
   };
+
+  if(typeof $cookies.authToken === 'string'){
+    genericRequest('/auth/check', {token:$cookies.authToken}, null, function(){
+      delete $cookies.authToken;
+    });
+  }
 
   me.login = function(payload, success, error){
     return genericRequest('/auth/login', payload, success, error);

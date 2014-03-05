@@ -7,7 +7,6 @@ var express = require('express'),
 app.post('/signup',
   signup,
   function(req,res){
-    delete req.user.password;
     res.send({
       status: 'ok',
       token: req.user.local.token.value,
@@ -19,7 +18,6 @@ app.post('/signup',
 app.post('/login',
   authenticate('login'),
   function(req,res){
-    delete req.user.password;
     res.send({
       status: 'ok',
       token: req.user.local.token.value,
@@ -34,6 +32,17 @@ app.post('/logout',
   function(req,res){
     res.send({
       status: 'ok'
+    });
+  }
+);
+
+app.post('/check',
+  authenticate(),
+  function(req, res){
+    res.send({
+      status: 'ok',
+      token: req.user.local.token.value,
+      user: req.user
     });
   }
 );
