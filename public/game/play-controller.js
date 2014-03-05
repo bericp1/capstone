@@ -1,15 +1,9 @@
-module.exports = ['$scope', 'AuthUserService', function($scope, UserService){
+module.exports = ['$scope', '$location', function($scope, $location){
 
   'use strict';
 
   $scope.state = {
-    user: UserService.user
+    returnPath: $location.path()
   };
-
-  $scope.$watch(function(){return UserService.user;}, function(){
-    $scope.state.user = UserService.user;
-  });
-
-  $scope.logout = UserService.logout;
 
 }];

@@ -3,20 +3,91 @@ module.exports = ['$scope', '$routeParams', '$location', 'AuthUserService', func
   'use strict';
 
   $scope.state = {
+    active: $routeParams['mode'],
+    returnPath: $routeParams['return'],
     status: '',
     message: '',
-    email: '',
-    password: '',
-    name: '',
-    bad: [],
     loading: false
   };
+  $scope.modes = {
+    'login': {
+      title: 'Login',
+      fields: [
+        {
+          'name': 'email',
+          'label': 'Email',
+          'type': 'text'
+        },
+        {
+          'name': 'password',
+          'label': 'Password',
+          'type': 'password'
+        }
+      ],
+      submit: function(){
+        loading();
+        UserService.login(
+          $scope.modes.login.data,
+          handleSuccess('Login Successful!'),
+          handleError('Login Failed!')
+        );
+      },
+      bad:[],
+      data: {}
+    },
+    'signup': {
+      title: 'Signup',
+      fields: [
+        {
+          'name': 'email',
+          'label': 'Email',
+          'type': 'text'
+        },
+        {
+          'name': 'password',
+          'label': 'Password',
+          'type': 'password'
+        },
+        {
+          'name': 'name',
+          'label': 'Name',
+          'type': 'text'
+        }
+      ],
+      submit: function(){
+        loading();
+        UserService.signup(
+          $scope.modes.signup.data,
+          handleSuccess('Signup Successful!'),
+          handleError('Signup Failed!')
+        );
+      },
+      bad:[],
+      data: {}
+    }
+  };
+  $scope.change = function(to){
+    $location.path('/auth/'+to);
+  };
+
+  if(typeof $scope.state.returnPath !== 'string' || $scope.state.returnPath.trim().length === 0){
+    $scope.state.returnPath = false;
+  }
+
+  if(!$scope.modes.hasOwnProperty($scope.state.active)){
+    for(var mode in $scope.modes){
+      if($scope.modes.hasOwnProperty(mode)){
+        $scope.change(mode);
+        break;
+      }
+    }
+  }
 
   var changeStatus = require('../assets/js/change-status')($scope);
 
   var loading = function(){
     $scope.state.loading = true;
-    $scope.state.bad = [];
+    $scope.modes[$scope.state.active].bad = [];
     changeStatus('none');
   };
 
@@ -24,7 +95,7 @@ module.exports = ['$scope', '$routeParams', '$location', 'AuthUserService', func
     return function(data){
       changeStatus('danger', status, data.error);
       if(Array.isArray(data.fields)){
-        $scope.state.bad = data.fields;
+        $scope.modes[$scope.state.active].bad = data.fields;
       }
       $scope.state.loading = false;
     };
@@ -37,44 +108,12 @@ module.exports = ['$scope', '$routeParams', '$location', 'AuthUserService', func
       }
       changeStatus('success', status);
       $scope.state.loading = false;
-      if(typeof $routeParams['return'] === 'string'){
-        $location.url($routeParams['return']);
+      if($scope.state.returnPath !== false){
+        $location.path($scope.state.returnPath);
+      }else{
+        $location.path('/');
       }
     };
-  };
-
-  $scope.login = function(){
-    loading();
-    UserService.login(
-      $scope.state.email, $scope.state.password,
-      handleSuccess('Login Successful!'),
-      handleError('Login Failed!')
-    );
-  };
-
-  $scope.logout = function(){
-    loading();
-    UserService.logout(
-      handleSuccess('Logout Successful!'),
-      handleError('Logout Failed!')
-    );
-  };
-
-  $scope.signup = function(){
-    loading();
-    UserService.signup(
-      {
-        email: $scope.state.email,
-        password: $scope.state.password,
-        name: $scope.state.name
-      },
-      handleSuccess('Signup Successful!'),
-      handleError('Signup Failed!')
-    );
-  };
-
-  $scope.change = function(to){
-    $location.url($location.url().replace(/\/auth\/[a-z]+(\?)?/, '/auth/' + to + '$1'));
   };
 
 }];

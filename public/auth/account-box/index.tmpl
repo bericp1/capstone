@@ -1,0 +1,10 @@
+<div class="well">
+    <div ng-show="state.user===false">
+        <a class="btn btn-primary" href="#/auth/login?{{returnPath}}">Login</a>
+        <a class="btn btn-info" href="#/auth/signup?{{returnPath}}">Signup</a>
+    </div>
+    <div ng-hide="state.user===false">
+        <span>Welcome, <strong>{{state.user.local.name}}</strong>!&nbsp;&nbsp;</span>
+        <a href="" class="btn btn-danger" ng-click="logout()">Logout</a>
+    </div>
+</div>

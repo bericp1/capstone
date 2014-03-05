@@ -4,14 +4,11 @@
   angular.module('auth', ['ngRoute'])
     .service('AuthUserService', require('./user-service'))
     .controller('AuthController', require('./controller'))
+    .directive('authAccountBox', require('./account-box/directive'))
     .config(['$routeProvider', function ($routeProvider) {
       $routeProvider
-        .when('/auth/signup', {
-          templateUrl: 'auth/signup.tmpl',
-          controller: 'AuthController'
-        })
-        .when('/auth/login', {
-          templateUrl: 'auth/login.tmpl',
+        .when('/auth/:mode', {
+          templateUrl: 'auth/index.tmpl',
           controller: 'AuthController'
         });
     }]);

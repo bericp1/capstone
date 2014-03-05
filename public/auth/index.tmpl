@@ -1,0 +1,42 @@
+<div class="container auth-form-container" ng-class="state.active+'-container'">
+    <div class="row row-fluid">
+        <div class="span4 offset4">
+            <h2>
+                {{modes[state.active].title}}
+                <div class="btn-group right-buttons">
+                    <a class="btn btn-sm btn-default" ng-href="#{{state.returnPath}}" ng-if="state.returnPath!=false">
+                        <span class="glyphicon glyphicon-arrow-left"></span> Back
+                    </a>
+                    <a class="btn btn-sm btn-default" ng-href="#/">
+                        <span class="glyphicon glyphicon-home"></span> Home
+                    </a>
+                </div>
+            </h2>
+            <div class="status-box text-center" ng-class="'text-'+state.status" ng-bind="state.message"></div>
+            <form class="well">
+                <div ng-repeat="field in modes[state.active].fields">
+                    <div class="form-group" ng-class="{'has-error': modes[state.active].bad.indexOf(field.name)>=0}">
+                        <label ng-bind="field.label"></label>
+                        <input type="{{field.type}}" class="form-control" ng-model="modes[state.active].data[field.name]">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block"
+                        ng-click="modes[state.active].submit()"
+                        ng-disabled="state.loading"
+                        ng-bind="modes[state.active].title"></button>
+            </form>
+            <!--<h3>Or use...</h3>
+            <div class="well text-center">
+                <a class="btn btn-default" href="">Google</a>
+                <a class="btn btn-default" href="">Facebook</a>
+                <a class="btn btn-default" href="">Twitter</a>
+            </div>-->
+            <h3>Or...</h3>
+            <div ng-repeat="(mode, modeData) in modes">
+                <div class="text-center" ng-hide="state.active===mode">
+                    <a href="" class="btn btn-lg btn-block btn-info" ng-click="change(mode)" ng-bind="modeData.title"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
