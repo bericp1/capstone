@@ -111,6 +111,7 @@ module.exports = function (grunt) {
         '!public/app*.css',
         '!public/vendor',
         '!public/assets',
+        '!public/*/assets',
         '!node_modules/**/*'
       ]
     },
