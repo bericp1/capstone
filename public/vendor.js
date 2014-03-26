@@ -6,3 +6,4 @@ require('./vendor/angular/angular-cookies');
 require('./vendor/angular/angular-route');
 require('./vendor/angular/angular-sanitize');
 require('./vendor/angular-socket-io/socket');
+require('./vendor/phaser/phaser.min');

@@ -152,7 +152,9 @@ module.exports = function (grunt) {
             angular: false,
             '$': false,
             jQuery: false,
-            console: false
+            console: false,
+            Phaser: false,
+            WebFont: false
           }
         }
       },
@@ -206,6 +208,10 @@ module.exports = function (grunt) {
             jquery:{
               path: 'public/vendor/jquery/jquery.js',
               exports: 'jQuery'
+            },
+            phaser:{
+              path: 'public/vendor/phaser/phaser.min.js',
+              exports: 'Phaser'
             }
           }
         }
@@ -222,6 +228,10 @@ module.exports = function (grunt) {
             jquery:{
               path: 'public/vendor/jquery/jquery.js',
               exports: 'jQuery'
+            },
+            phaser:{
+              path: 'public/vendor/phaser/phaser.min.js',
+              exports: 'Phaser'
             }
           }
         }
