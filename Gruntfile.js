@@ -102,15 +102,15 @@ module.exports = function (grunt) {
         '**/README.md',
         'tasks',
         '**.log',
-        'public/*',
+        'public/**/*.{js,less,tmpl,css}',
         'dest',
         '.tmp',
         '!public/favicon.ico',
         '!public/index.html',
         '!public/app*.js',
         '!public/app*.css',
-        '!public/vendor',
-        '!public/assets',
+        '!public/vendor/**/*',
+        '!public/**/assets/**/*',
         '!node_modules/**/*'
       ]
     },
