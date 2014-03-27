@@ -11,7 +11,7 @@ module.exports = (function(){
       }]
     },
     spritesheet: {
-      'player_front_blink': ['/game/assets/sprites/player_front_blink.png', 32, 64, 10]
+      'player_front_blink': ['/game/assets/sprites/player_front_blink.png', 320, 640, 13]
     }
   };
 })();

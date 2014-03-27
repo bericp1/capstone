@@ -3,16 +3,20 @@ module.exports = ['$scope', '$location', 'GamePlayService', function($scope, $lo
   'use strict';
 
   $scope.state = {
-    returnPath: $location.path()
+    returnPath: $location.path(),
+
+    game: {
+      phaser: {},
+      config: {
+        width: 600,
+        height: 600
+      },
+      input: ''
+    }
   };
 
-  $scope.state.game = {
-    input: '',
-    score: PlayService.score
-  };
-
-  $scope.$watch(function(){return PlayService.score;}, function(){
-    $scope.state.game.score = PlayService.score;
+  $scope.$watch('state.game.phaser', function(){
+    PlayService.manage($scope.state.game.phaser);
   });
 
 }];

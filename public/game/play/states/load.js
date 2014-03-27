@@ -1,20 +1,21 @@
 module.exports = (function(){
   'use strict';
 
-  var scheme = require('../../color-scheme'),
+  var style = require('../../style'),
+    strings = require('../../strings').load,
     resources = require('../../resources'),
     util = require('../../util');
 
   return {
     preload: function(){
-      this.game.stage.backgroundColor = scheme.one;
+      this.game.stage.backgroundColor = style.color.one;
       var loadingText = this.game.add.text(
         this.game.world.centerX,
         this.game.world.centerY,
-        'LOADING',
+        strings.loading,
         {
-          font: 'bold 60px Fjalla One',
-          fill: scheme.white,
+          font: 'bold 60px ' + style.font.title,
+          fill: style.color.white,
           align: 'center'
         }
       );

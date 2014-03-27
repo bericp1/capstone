@@ -1,4 +1,4 @@
-var schemes = {
+var colorSchemes = {
   parrot: {
     white:    '#ffffff',
     dark:     '#3f3f3f',
@@ -17,4 +17,12 @@ var schemes = {
   }
 };
 
-module.exports = schemes.office3;
+var style = {
+  color: colorSchemes.parrot,
+  font: {
+    title: 'Fjalla One',
+    regular: 'Fjalla One'
+  }
+}
+
+module.exports = style;
