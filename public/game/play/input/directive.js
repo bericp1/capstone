@@ -1,4 +1,4 @@
-module.exports = [function () {
+module.exports = ['GamePlayInputParserService', function (ParserService) {
   'use strict';
   return {
     restrict: 'AC',
@@ -12,10 +12,16 @@ module.exports = [function () {
       $scope.$watch('input', function(){
         $element.val($scope.input);
       }, true);
-      $element.on('keyup', function(){
-        $scope.input = $element.val();
-        $scope.$apply();
-      });
+      $element
+        .on('keyup', function(event){
+          if(event.which===13 && !!ParserService.ready){
+            ParserService.run($scope.input);
+            $scope.input = '';
+          }else{
+            $scope.input = $element.val();
+          }
+          $scope.$apply();
+        });
     }
   };
 }];

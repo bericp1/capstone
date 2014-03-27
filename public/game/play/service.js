@@ -1,4 +1,4 @@
-module.exports = ['$window', function ($window) {
+module.exports = ['$window', 'GamePlayInputParserService', function ($window, ParserService) {
   'use strict';
 
   /**
@@ -12,6 +12,13 @@ module.exports = ['$window', function ($window) {
    * @type {number}
    */
   this.tries = 3;
+
+  /**
+   * The verbs and aliases and whatnot to be loaded by the parser. This will be broken into states and then into
+   * verbs and actions. Generated from individual states capabilities in #manage
+   * @type {{Object}}
+   */
+  this.capabilities = {};
 
   /**
    * Beginning managing game
@@ -32,12 +39,22 @@ module.exports = ['$window', function ($window) {
       me.game = game;
 
       var states = {
+        '_global': require('./states/global'),
         'load': require('./states/load'),
         'title': require('./states/title')
       };
       for(var stateName in states){
-        if(states.hasOwnProperty(stateName)) me.game.state.add(stateName, states[stateName]);
+        if(states.hasOwnProperty(stateName)){
+          if(stateName.indexOf('_') !== 0){
+            me.game.state.add(stateName, states[stateName]);
+          }
+          if(states[stateName].hasOwnProperty('capabilities')){
+            me.capabilities[stateName] = states[stateName].capabilities;
+          }
+        }
       }
+
+      ParserService.build(me.game, me.capabilities);
 
       me.game.state.start('load');
     }

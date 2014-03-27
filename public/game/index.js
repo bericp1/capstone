@@ -6,6 +6,7 @@
     .directive('gamePlayInput', require('./play/input/directive'))
     .directive('gamePhaser', require('./play/phaser-directive'))
     .controller('GamePlayController', require('./play/controller'))
+    .service('GamePlayInputParserService', require('./play/input/parser-service'))
     .service('GamePlayService', require('./play/service'))
     .config(['$routeProvider', function ($routeProvider) {
       $routeProvider

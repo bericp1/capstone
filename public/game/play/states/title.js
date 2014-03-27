@@ -66,6 +66,26 @@ module.exports = (function () {
         }
       );
       startCommandsText.anchor.setTo(0.5);
+    },
+
+    capabilities: {
+      'start': [
+        'Start the game.',
+        {},
+        function(game){
+          game.state.start('map');
+        },
+        'go'
+      ],
+      'load': [
+        'Load a saved game.',
+        {
+          'id': 'ID of save to load'
+        },
+        function(game, saveID){
+          console.log('LOADING!!!', 'Save ID:', saveID);
+        }
+      ]
     }
   };
 })();
