@@ -20,7 +20,7 @@ var colorSchemes = {
 var style = {
   color: colorSchemes.parrot,
   font: {
-    title: 'Fjalla One',
+    title: 'Henny Penny',
     regular: 'Fjalla One'
   }
 };

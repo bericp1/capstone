@@ -14,7 +14,7 @@ module.exports = (function(){
         this.game.world.centerY,
         strings.loading,
         {
-          font: 'bold 60px ' + style.font.title,
+          font: 'bold 60px ' + style.font.regular,
           fill: style.color.white,
           align: 'center'
         }

@@ -12,6 +12,9 @@ module.exports = (function () {
     create: function(){
       this.game.stage.backgroundColor = style.color.white;
 
+      var titleBackgroundMusic = this.game.add.audio('main_bg', 1, true);
+      titleBackgroundMusic.play();
+
       var titleText = this.game.add.text(
         this.game.world.centerX,
         100,
