@@ -23,6 +23,6 @@ var style = {
     title: 'Fjalla One',
     regular: 'Fjalla One'
   }
-}
+};
 
 module.exports = style;

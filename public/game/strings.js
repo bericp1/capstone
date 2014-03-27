@@ -1,4 +1,5 @@
 module.exports = (function(){
+  'use strict';
 	return {
     load: {
       loading: 'LOADING'
