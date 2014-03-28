@@ -15,7 +15,15 @@ module.exports = (function(){
       }]
     },
     spritesheet: {
-      'player_front_blink': ['/game/assets/sprites/player_front_blink.png', 320, 640, 13]
+      'player_front_blink': ['/game/assets/sprites/player_front_blink.png', 320, 640, 13],
+      'player_top_moving': ['/game/assets/sprites/player_top_moving.png', 120, 120, 8],
+      'map_tiles_sprites': ['/game/assets/tilesets/map.png', 120, 120, 12]
+    },
+    tilemap: {
+      'main': ['/game/assets/tilemaps/main.json', null, Phaser.Tilemap.TILED_JSON]
+    },
+    image: {
+      'map_tiles': ['/game/assets/tilesets/map.png']
     }
   };
 })();

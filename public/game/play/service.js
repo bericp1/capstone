@@ -11,14 +11,14 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
    * ...we must force a page reload after the game has been rebooted a certain number of times
    * @type {number}
    */
-  this.tries = 3;
+  var tries = 3;
 
   /**
    * The verbs and aliases and whatnot to be loaded by the parser. This will be broken into states and then into
    * verbs and actions. Generated from individual states capabilities in #manage
    * @type {{Object}}
    */
-  this.capabilities = {};
+  var capabilities = {};
 
   /**
    * Beginning managing game
@@ -28,8 +28,8 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
     var me = this;
     if(game instanceof Phaser.Game){
       if(me.game){
-        me.tries--;
-        if(me.tries === 0){
+        tries--;
+        if(tries === 0){
           $window.location.reload();
         }
         else{
@@ -41,7 +41,8 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
       var states = {
         '_global': require('./states/global'),
         'load': require('./states/load'),
-        'title': require('./states/title')
+        'title': require('./states/title'),
+        'map': require('./states/map')
       };
       for(var stateName in states){
         if(states.hasOwnProperty(stateName)){
@@ -49,12 +50,12 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
             me.game.state.add(stateName, states[stateName]);
           }
           if(states[stateName].hasOwnProperty('capabilities')){
-            me.capabilities[stateName] = states[stateName].capabilities;
+            capabilities[stateName] = states[stateName].capabilities;
           }
         }
       }
 
-      ParserService.build(me.game, me.capabilities);
+      ParserService.build(me.game, capabilities);
 
       me.game.state.start('load');
     }

@@ -72,8 +72,8 @@ module.exports = (function () {
       'start': [
         'Start the game.',
         {},
-        function(game){
-          game.state.start('map');
+        function(){
+          this.game.state.start('map');
         },
         'go'
       ],
@@ -82,7 +82,7 @@ module.exports = (function () {
         {
           'id': 'ID of save to load'
         },
-        function(game, saveID){
+        function(saveID){
           console.log('LOADING!!!', 'Save ID:', saveID);
         }
       ]

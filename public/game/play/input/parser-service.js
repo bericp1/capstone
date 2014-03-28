@@ -1,4 +1,4 @@
-module.exports = [function () {
+module.exports = ['$injector', function ($injector) {
   'use strict';
 
   var DictionaryEntry = function(description, args, action, aliases){
@@ -120,8 +120,7 @@ module.exports = [function () {
     var doAction = function(state){
       var action = me.dictionary[state][verb].action;
       if(typeof action === 'function'){
-        args.unshift(me.game);
-        action.apply(me, args);
+        action.apply($injector.get('GamePlayService'), args);
       }else if(typeof action === 'string'){
         me.run(action + ' ' + args.join(' '));
       }
