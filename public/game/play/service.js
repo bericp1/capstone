@@ -58,6 +58,12 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
       ParserService.build(me.game, capabilities);
 
       me.game.state.start('load');
+
+      jQuery(window).on('gamePlay.doneMoving', function(event, data){
+        console.log(data.messages);
+      });
     }
   };
+
+  this.message = function(message){console.log(message);};
 }];
