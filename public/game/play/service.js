@@ -21,6 +21,12 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
   var capabilities = {};
 
   /**
+   * Messages that should be shown in output
+   * @type {Array.<string>}
+   */
+  this.messages = [];
+
+  /**
    * Beginning managing game
    * @param game Phaser.Game
    */
@@ -39,10 +45,10 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
       me.game = game;
 
       var states = {
-        '_global': require('./states/global'),
+        '_global': require('./states/global')(me),
         'load': require('./states/load'),
         'title': require('./states/title'),
-        'map': require('./states/map')
+        'map': require('./states/map')(me)
       };
       for(var stateName in states){
         if(states.hasOwnProperty(stateName)){
@@ -58,12 +64,21 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
       ParserService.build(me.game, capabilities);
 
       me.game.state.start('load');
-
-      jQuery(window).on('gamePlay.doneMoving', function(event, data){
-        console.log(data.messages);
-      });
     }
   };
 
-  this.message = function(message){console.log(message);};
+  /**
+   * Appends message to outputable array
+   * @param message {(Array.<string>|string)}
+   */
+  this.message = function(message){
+    if(message instanceof Array){
+      for(var i=0;i<message.length;i++){
+        this.message(message[i]);
+      }
+    }else{
+      this.messages.push(message);
+      jQuery('textarea').val(jQuery('textarea').val() + '\n' + message);
+    }
+  };
 }];

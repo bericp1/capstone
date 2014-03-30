@@ -4,11 +4,16 @@
             <h1>Play!<span class="account-box" auth-account-box="state.returnPath"></span></h1>
         </div>
     </div>
-    <div class="row-fluid">
-        <div class="game-play-main well">
-            <div game-phaser="state.game.phaser" game-phaser-config="state.game.config"></div>
-            <input class="form-control input-block-level" game-play-input="state.game.input" auto-focus>
+    <div class="row-main well clearfix">
+        <div class="game-play-main">
+            <div game-phaser="state.game.phaser" game-phaser-config="state.game.config" class="game-canvas-container"></div>
         </div>
+        <div class="game-play-io">
+            <textarea class="game-play-output form-control input-block-level" game-play-output="state.game.output"></textarea>
+            <input class="game-play-input form-control input-block-level" game-play-input="state.game.input" auto-focus>
+        </div>
+    </div>
+    <div class="row-fluid">
         <div class="text-center">
             Try "help" at any time if you're lost.
         </div>

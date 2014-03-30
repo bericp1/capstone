@@ -8,28 +8,56 @@
       }
     }
   }
-  .game-play-main{
+  .row-main{
+    width: 1140px;
     padding: 0;
-    width: 602px;
     margin: 50px auto 10px auto;
-    input{
-      border-top-left-radius: 0px;
-      border-top-right-radius: 0px;
-      box-shadow: none;
-      border-left: none;
-      border-right: none;
-      border-bottom: none;
+    &>div{
+      overflow: hidden;
     }
-    #game-play-phaser{
-      border-top-left-radius: inherit;
-      border-top-right-radius: inherit;
-      width: 100%;
-      canvas{
+    .game-play-main{
+      padding: 0;
+      width: 602px;
+      float: left;
+      margin: 0;
+      .game-canvas-container{
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
+        width: 100%;
+        canvas{
+          border-top-left-radius: inherit;
+          border-top-right-radius: inherit;
+        }
+      }
+    }
+    .game-play-io{
+      width: 536px;
+      padding: 0;
+      margin: 0;
+      float: left;
+      .game-play-input,.game-play-output{
+        box-shadow: none;
+        border-left: none;
+        border-right: none;
+      }
+      .game-play-input{
+        border-bottom: none;
+        border-bottom-left-radius: 0px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+      }
+      .game-play-output{
+        height: 564px;
+        max-height: 564px;
+        max-width: 536px;
+        border-bottom: none;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
       }
     }
   }
+
   .game-play-footer{
     margin-top: 40px;
   }

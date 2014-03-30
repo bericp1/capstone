@@ -1,201 +1,301 @@
-module.exports = (function (Phaser, $) {
+module.exports = (function (Phaser) {
   'use strict';
 
-  var style = require('../../style'),
-    strings = require('../../strings').map,
-    MapManager = require('../../classes/MapManager');
+  return function(UIService){
 
-  var game, mapBackgroundMusic, map, groundLayer, player, mapManager, moveTween;
+    var style = require('../../style'),
+      strings = require('../../strings').map,
+      MapManager = require('../../classes/MapManager');
 
-  var activeZone;
+    /**
+     * Game that this state belongs to
+     * @type {Phaser.Game}
+     */
+    var game;
 
-  var keys = 0;
+    /**
+     * The background sound
+     * @type {Phaser.Sound}
+     */
+    var mapBackgroundMusic;
 
-  var inventory = [];
+    /**
+     * @type {Phaser.Tilemap}
+     */
+    var map;
 
-  var create = function(){
-    game = this.game;
+    /**
+     * The layer which contains the ground tiles
+     * @type {Phaser.TilemapLayer}
+     */
+    var groundLayer;
 
-    game.sound.stopAll();
-    mapBackgroundMusic = this.game.add.audio('ambient', 1, true);
-    mapBackgroundMusic.play();
+    /**
+     * The Sprite instance for the play
+     * @type {Phaser.Sprite}
+     */
+    var player;
 
-    game.stage.backgroundColor = style.color.light;
+    /**
+     * @type {MapManager}
+     */
+    var mapManager;
 
-    map = game.add.tilemap('main');
-    map.addTilesetImage('map_tiles', 'map_tiles');
-    groundLayer = map.createLayer('ground');
-    groundLayer.resizeWorld();
+    /**
+     * Tween to manage the movement of the player
+     * @type {Phaser.Tween}
+     */
+    var moveTween;
 
-    mapManager = new MapManager(map);
-    mapManager.addObjectLayers('map_tiles_sprites');
+    /**
+     * The zone that the player currently occupies
+     * @type {Phaser.Tween}
+     */
+    var activeZone;
 
-    mapManager.objects.zones.setAll('alpha', 0);
+    /**
+     * The number of keys that the player currently possesses
+     * @type {number}
+     */
+    var keys = 0;
 
-    activeZone = mapManager.findByNameIn('start', 'zones');
-    player = game.add.sprite(activeZone.x, activeZone.y, 'player_top_moving', 0);
-    player.anchor.setTo(0.5);
-    game.camera.follow(player);
+    /**
+     * The player's inventory
+     * @type {Array.<Phaser.Sprite>}
+     */
+    var inventory = [];
 
-    player.animations.add('top_moving', null, 16, true);
+    /**
+     * The speed at which the player should travel when omving.
+     * Measured in pixels/ms
+     * @type {number}
+     */
+    var speed = 250/1000;
 
-    movePlayerTo(activeZone);
+    /**
+     * Run on state load to create the stage
+     */
+    var create = function(){
+      game = this.game;
+
+      game.sound.stopAll();
+      mapBackgroundMusic = this.game.add.audio('ambient', 1, true);
+      mapBackgroundMusic.play();
+
+      game.stage.backgroundColor = style.color.light;
+
+      map = game.add.tilemap('main');
+      map.addTilesetImage('map_tiles', 'map_tiles');
+      groundLayer = map.createLayer('ground');
+      groundLayer.resizeWorld();
+
+      mapManager = new MapManager(map);
+      mapManager.addObjectLayers('map_tiles_sprites');
+
+      mapManager.objects.zones.setAll('alpha', 0);
+
+      activeZone = mapManager.findByNameIn('start', 'zones');
+      player = game.add.sprite(activeZone.x, activeZone.y, 'player_top_moving', 0);
+      player.anchor.setTo(0.5);
+      game.camera.follow(player);
+
+      player.animations.add('top_moving', null, 16, true);
+
+      movePlayerTo(activeZone);
 
 //      cursors = game.input.keyboard.createCursorKeys();
-  };
+    };
 
-  var update = function(){};
+    /**
+     * Run on game update
+     */
+    var update = function(){};
 
-  var directions = [
-    {short:'n',long:'north'},
-    {short:'ne',long:'northeast'},
-    {short:'e',long:'east'},
-    {short:'se',long:'southeast'},
-    {short:'s',long:'south'},
-    {short:'sw',long:'southwest'},
-    {short:'w',long:'west'},
-    {short:'nw',long:'northwest'}
-  ];
+    /**
+     * Possible directions coupled with their long forms and angles at which the player should be turned
+     * @type {{short: string, long: string, angle: number}[]}
+     */
+    var directions = [
+      {short:'n',long:'north', angle:-Math.PI/2},
+      {short:'ne',long:'northeast', angle:-Math.PI/4},
+      {short:'e',long:'east', angle:0},
+      {short:'se',long:'southeast', angle:Math.PI/4},
+      {short:'s',long:'south', angle:Math.PI/2},
+      {short:'sw',long:'southwest', angle:3*Math.PI/4},
+      {short:'w',long:'west', angle:Math.PI},
+      {short:'nw',long:'northwest', angle:-3*Math.PI/4}
+    ];
 
-  var inventoryQueue = [], keyQueue = 0, messageQueue = [];
+    /**
+     * Queues used for collision testing and sprite killing. (Oh the humanity!)
+     * @type {{inventory: Array, key: Array, message: Array, door: Array}}
+     */
+    var deathRow = {
+      inventory:  [],
+      key:        [],
+      message:    [],
+      door:       []
+    };
 
-  var movePlayerTo = function(zone){
-    player.animations.play('top_moving');
-    zone = mapManager.findByNameIn(zone, 'zones');
-    if(!!zone){
-      var course = mapManager.findInPath(player, zone),
-        props = {}, safe = true;
+    /**
+     * Moves player to a certain zone
+     * @param zone Zone to move player to
+     */
+    var movePlayerTo = function(zone){
+      //Start walking animation
+      player.animations.play('top_moving');
+      zone = mapManager.findByNameIn(zone, 'zones');
+      if(!!zone){
+        var course = mapManager.findInPath(player, zone),
+          props = {}, safe = true;
 
-      if(course.objects instanceof Array && course.objects.length > 0){
-        for(var objIdx=0;objIdx<course.objects.length;objIdx++){
-          var objectInfo = course.objects[objIdx];
-          switch (objectInfo.group) {
-          case 'walls':
-            safe = false;
-            return strings.wall;
-          case 'doors':
-            if(keyQueue>0){
-              keyQueue--;
-              messageQueue.push(strings.door.unlocked);
-              objectInfo.sprite.kill();
-            }else if(keys>0){
-              keys--;
-              messageQueue.push(strings.door.unlocked);
-              objectInfo.sprite.kill();
-            }else{
-              messageQueue.push(strings.door.locked);
+        if(course.objects instanceof Array && course.objects.length > 0){
+          for(var objIdx=0;objIdx<course.objects.length;objIdx++){
+            var objectInfo = course.objects[objIdx];
+            switch (objectInfo.group) {
+            case 'walls':
               safe = false;
+              break;
+            case 'doors':
+              if(deathRow.key.length>0){
+                deathRow.key.pop();
+                deathRow.message.push(strings.door.unlocked);
+                deathRow.door.push(objectInfo.sprite);
+              }else if(keys>0){
+                keys--;
+                deathRow.message.push(strings.door.unlocked);
+                deathRow.door.push(objectInfo.sprite);
+              }else{
+                deathRow.message.push(strings.door.locked);
+                safe = false;
+              }
+              break;
+            case 'items':
+              deathRow.inventory.push(objectInfo.sprite);
+              deathRow.message.push(strings.item[objectInfo.name]);
+              break;
+            case 'keys':
+              deathRow.key.push(objectInfo.sprite);
+              deathRow.message.push(strings.key);
+              break;
+            case 'events':
+              //TODO acknowledge events
+              break;
+            default:
+              break;
             }
-            break;
-          case 'items':
-            inventoryQueue.push(objectInfo.sprite);
-            messageQueue.push(strings.item[objectInfo.name]);
-            objectInfo.sprite.kill();
-            break;
-          case 'keys':
-            keyQueue++;
-            messageQueue.push(strings.key);
-            objectInfo.sprite.kill();
-            break;
-          case 'events':
-            //TODO acknowledge events
-            break;
-          default:
-            break;
-          }
-          if(!safe){break;}
-        }
-      }
-
-      if(!!safe){
-        messageQueue.push(zone.long);
-        for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
-          if(zone.hasOwnProperty(directions[dirIdx].short)){
-            messageQueue.push('To the ' + directions[dirIdx].long + ' is ' +
-              mapManager.findByNameIn(zone[directions[dirIdx].short], 'zones').short);
+            if(!safe){break;}
           }
         }
+
+        if(!!safe){
+          deathRow.message.push(zone.long);
+          for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
+            if(zone.hasOwnProperty(directions[dirIdx].short)){
+              deathRow.message.push('To the ' + directions[dirIdx].long + ' is ' +
+                mapManager.findByNameIn(zone[directions[dirIdx].short], 'zones').short);
+            }
+          }
+        }
+
+        if(typeof course.direction === 'string' && !!safe){
+          props[course.direction] = zone[course.direction];
+          var time = (Math.abs(player[course.direction]-zone[course.direction])/speed);
+          moveTween = game.add.tween(player);
+          moveTween.onComplete.add(doneMovingPlayer, this);
+          moveTween.to(props, time, Phaser.Easing.Linear.None);
+          moveTween.start();
+          activeZone = zone;
+        }else{
+          doneMovingPlayer.apply(this,[]);
+        }
+
       }
+    };
 
-      if(typeof course.direction === 'string' && !!safe){
-        props[course.direction] = zone[course.direction];
-        moveTween = game.add.tween(player);
-        moveTween.onComplete.add(doneMovingPlayer, this);
-        moveTween.to(props, 3000, Phaser.Easing.Linear.None);
-        moveTween.start();
-        activeZone = zone;
-      }else{
-        doneMovingPlayer.apply(this,[]);
+    /**
+     * Callback run when player is done moving (or can't move)
+     */
+    var doneMovingPlayer = function(){
+      keys+=deathRow.key.length;
+      for(var keyi=0;keyi<deathRow.key.length;keyi++){
+        deathRow.key[keyi].kill();
       }
-
-    }
-  };
-
-  var doneMovingPlayer = function(){
-    keys+=keyQueue;
-    keyQueue=0;
-    for(var i=0;i<inventoryQueue.length;i++){
-      inventory.push(inventoryQueue[i]);
-    }
-    inventoryQueue = [];
-    $(window).trigger('gamePlay.doneMoving', [{messages: messageQueue}]);
-    messageQueue = [];
-    player.animations.stop('top_moving', true);
-  };
-
-  var resolveDirection = function(direction){
-    for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
-      if(direction === directions[dirIdx].short || direction === directions[dirIdx].long){
-        return directions[dirIdx].short;
+      for(var invi=0;invi<deathRow.inventory.length;invi++){
+        inventory.push(deathRow.inventory[invi]);
+        deathRow.inventory[invi].kill();
       }
-    }
-    return false;
-  };
+      for(var doori=0;doori<deathRow.door.length;doori++){
+        deathRow.door[doori].kill();
+      }
+      UIService.message(deathRow.message);
+      deathRow.key=[];
+      deathRow.inventory = [];
+      deathRow.door = [];
+      deathRow.message = [];
+      player.animations.stop('top_moving', true);
+    };
 
-  return {
-    create: create,
+    /**
+     * Return a direction object from a string
+     * @param direction {string} Can be either the short or long version of the direction's name
+     * @returns {({short: string, long: string, angle: number}|boolean)} The direction object or false if none found
+     */
+    var resolveDirection = function(direction){
+      for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
+        if(direction === directions[dirIdx].short || direction === directions[dirIdx].long){
+          return directions[dirIdx];
+        }
+      }
+      return false;
+    };
 
-    update: update,
-
-    movePlayerTo: movePlayerTo,
-
-    capabilities: {
-      'move': [
-        'Move Gregory in a certain direction.',
-        {
-          direction: 'The direction in which to move Gregory'
-        },
-        function(direction){
-          var newDirection = resolveDirection(direction);
-          if(!!newDirection){
-            var newZone = mapManager.findByNameIn(activeZone[newDirection], 'zones');
-            if(!!newZone){
-              movePlayerTo(newZone);
+    /**
+     * Construct capabilities partly from possible directions
+     * @returns {Object.<string,(Object.<string,*>|string|Array.<*>)>}
+     */
+    var constructCapabilities = function(){
+      var caps = {
+        'move': [
+          'Move Gregory in a certain direction.',
+          {
+            direction: 'The direction in which to move Gregory'
+          },
+          function(direction){
+            var newDirection = resolveDirection(direction);
+            if(!!newDirection){
+              var newZone = mapManager.findByNameIn(activeZone[newDirection.short], 'zones');
+              if(!!newZone){
+                player.rotation=newDirection.angle;
+                movePlayerTo(newZone);
+              }else{
+                UIService.message(strings.noSuchZone);
+              }
             }else{
-              this.message(strings.noSuchZone);
+              UIService.message(strings.badDirection);
             }
-          }else{
-            this.message(strings.badDirection);
-          }
-        },
-        'go'
-      ],
-      'n': 'move n',
-      'north': 'move n',
-      's': 'move s',
-      'south': 'move s',
-      'e': 'move e',
-      'east': 'move e',
-      'w': 'move w',
-      'west': 'w',
-      'ne': 'move ne',
-      'northeast': 'move ne',
-      'se': 'move se',
-      'southeast': 'move se',
-      'nw': 'move nw',
-      'northwest': 'move nw',
-      'sw': 'move sw',
-      'southweat': 'move sw'
-    }
+          },
+          'go'
+        ]
+      };
+      for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
+        var direction = directions[dirIdx];
+        caps[direction.short] = 'move ' + direction.short;
+        caps[direction.long] = 'move ' + direction.short;
+      }
+      return caps;
+    };
+
+    return {
+      create: create,
+
+      update: update,
+
+      movePlayerTo: movePlayerTo,
+
+      capabilities: constructCapabilities()
+    };
+
   };
-})(Phaser, jQuery);
+
+})(Phaser);

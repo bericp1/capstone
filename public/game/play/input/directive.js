@@ -1,7 +1,7 @@
 module.exports = ['GamePlayInputParserService', function (ParserService) {
   'use strict';
   return {
-    restrict: 'AC',
+    restrict: 'A',
     replace: true,
     templateUrl: 'game/play/input/index.tmpl',
     scope: {

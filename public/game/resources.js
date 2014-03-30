@@ -1,4 +1,4 @@
-module.exports = (function(){
+module.exports = (function(Phaser){
   'use strict';
   return {
     audio: {
@@ -26,4 +26,4 @@ module.exports = (function(){
       'map_tiles': ['/game/assets/tilesets/map.png']
     }
   };
-})();
+})(Phaser);

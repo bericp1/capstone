@@ -13,7 +13,7 @@ module.exports = (function(){
       wall: 'Gregory would hit a wall if he tried to do that.',
       door: {
         unlocked: 'Gregory used a key to unlock a door in his path.',
-        locked: 'Gregory didn\'t have any keys to unlock the door(s) in his path.'
+        locked: 'Gregory doesn\'t have any keys to unlock the door(s) in his path.'
       },
       key: 'Gregory found a key. How handy!',
       item: {
