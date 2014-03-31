@@ -105,6 +105,10 @@ module.exports = ['$injector', function ($injector) {
     }
   };
 
+  /**
+   * Runs a command based on the currently built dictionary
+   * @returns {boolean} True if command found and run, false otherwise
+   */
   me.run = function(command){
     var state = me.game.state.current;
     var rawParts = command.split(' ');
@@ -121,16 +125,21 @@ module.exports = ['$injector', function ($injector) {
       var action = me.dictionary[state][verb].action;
       if(typeof action === 'function'){
         action.apply($injector.get('GamePlayService'), args);
+        return true;
       }else if(typeof action === 'string'){
-        me.run(action + ' ' + args.join(' '));
+        return me.run(action + ' ' + args.join(' '));
+      }else{
+        return false;
       }
     };
 
     if(me.dictionary.hasOwnProperty(state)){
       if(me.dictionary[state].hasOwnProperty(verb)){
-        doAction(state);
+        return doAction(state);
       }else if(me.dictionary.hasOwnProperty('_global') && me.dictionary._global.hasOwnProperty(verb)){
-        doAction('_global');
+        return doAction('_global');
+      }else{
+        return false;
       }
     }
   };

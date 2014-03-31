@@ -5,7 +5,8 @@ module.exports = (function (Phaser) {
 
     var style = require('../../style'),
       strings = require('../../strings').map,
-      MapManager = require('../../classes/MapManager');
+      MapManager = require('../../classes/MapManager'),
+      Twine = require('../../classes/Twine');
 
     /**
      * Game that this state belongs to
@@ -20,9 +21,20 @@ module.exports = (function (Phaser) {
     var mapBackgroundMusic;
 
     /**
+     * Cursors for movement with keyboard_keys item
+     * @type {Phaser.CursorKeys}
+     */
+    var cursors;
+
+    /**
      * @type {Phaser.Tilemap}
      */
     var map;
+
+    /**
+     * @type {MapManager}
+     */
+    var mapManager;
 
     /**
      * The layer which contains the ground tiles
@@ -37,23 +49,6 @@ module.exports = (function (Phaser) {
     var player;
 
     /**
-     * @type {MapManager}
-     */
-    var mapManager;
-
-    /**
-     * Tween to manage the movement of the player
-     * @type {Phaser.Tween}
-     */
-    var moveTween;
-
-    /**
-     * The zone that the player currently occupies
-     * @type {Phaser.Tween}
-     */
-    var activeZone;
-
-    /**
      * The number of keys that the player currently possesses
      * @type {number}
      */
@@ -66,11 +61,61 @@ module.exports = (function (Phaser) {
     var inventory = [];
 
     /**
+     * Tween to manage the movement of the player
+     * @type {Phaser.Tween}
+     */
+    var moveTween;
+
+    /**
      * The speed at which the player should travel when omving.
      * Measured in pixels/ms
      * @type {number}
      */
     var speed = 250/1000;
+
+    /**
+     * Will be true when the player is being moved. Blocks moving when true.
+     * @type {boolean}
+     */
+    var moving = false;
+
+    /**
+     * The active course of movement as returned by MapManager#findInPath
+     * @type {{
+     *    direction: string,
+     *    objects: Array.<{name: string, group: string, distance: number, sprite: Phaser.Sprite}>,
+     *    locations: Object<number,Array.<{name: string, group: string, distance: number, sprite: Phaser.Sprite}>>,
+     *    contains: Object.<string,Array.<{name: string, group: string, distance: number, sprite: Phaser.Sprite}>>
+     *  }}
+     */
+    var activeCourse = null;
+
+    /**
+     * The zone that the player currently occupies. Null when moving
+     * @type {Phaser.Tween}
+     */
+    var activeZone = null;
+
+    /**
+     * The zone that the player is moving towards. Is null when not moving
+     * @type {Phaser.Tween}
+     */
+    var targetZone = null;
+
+    /**
+     * Possible directions coupled with their long forms and angles at which the player should be turned
+     * @type {{short: string, long: string, angle: number}[]}
+     */
+    var directions = [
+      {short:'n',long:'north', angle:-Math.PI/2},
+      {short:'ne',long:'northeast', angle:-Math.PI/4},
+      {short:'e',long:'east', angle:0},
+      {short:'se',long:'southeast', angle:Math.PI/4},
+      {short:'s',long:'south', angle:Math.PI/2},
+      {short:'sw',long:'southwest', angle:3*Math.PI/4},
+      {short:'w',long:'west', angle:Math.PI},
+      {short:'nw',long:'northwest', angle:-3*Math.PI/4}
+    ];
 
     /**
      * Run on state load to create the stage
@@ -103,137 +148,113 @@ module.exports = (function (Phaser) {
 
       movePlayerTo(activeZone);
 
-//      cursors = game.input.keyboard.createCursorKeys();
+      cursors = game.input.keyboard.createCursorKeys();
     };
 
     /**
-     * Run on game update
+     * Output the current zones details
+     * @param zone {Phaser.Sprite|*} Zone to examine or null for activeZone
      */
-    var update = function(){};
-
-    /**
-     * Possible directions coupled with their long forms and angles at which the player should be turned
-     * @type {{short: string, long: string, angle: number}[]}
-     */
-    var directions = [
-      {short:'n',long:'north', angle:-Math.PI/2},
-      {short:'ne',long:'northeast', angle:-Math.PI/4},
-      {short:'e',long:'east', angle:0},
-      {short:'se',long:'southeast', angle:Math.PI/4},
-      {short:'s',long:'south', angle:Math.PI/2},
-      {short:'sw',long:'southwest', angle:3*Math.PI/4},
-      {short:'w',long:'west', angle:Math.PI},
-      {short:'nw',long:'northwest', angle:-3*Math.PI/4}
-    ];
-
-    /**
-     * Queues used for collision testing and sprite killing. (Oh the humanity!)
-     * @type {{inventory: Array, key: Array, message: Array, door: Array}}
-     */
-    var deathRow = {
-      inventory:  [],
-      key:        [],
-      message:    [],
-      door:       []
+    var examine = function(zone){
+      if(!(zone instanceof Phaser.Sprite)) zone = activeZone;
+      var messages = [];
+      messages.push(new Twine(zone.long, {color: style.color.one, weight: 'bold'}));
+      for(var i=0;i<directions.length;i++){
+        if(zone.hasOwnProperty(directions[i].short)){
+          messages.push(new Twine(strings.surroundings(
+            directions[i].long, mapManager.findByNameIn(targetZone[directions[i].short], 'zones').short
+          ), {color: style.color.one}));
+        }
+      }
+      UIService.message(messages);
     };
 
     /**
      * Moves player to a certain zone
-     * @param zone Zone to move player to
+     * @param zoneName {string|Phaser.Sprite} Zone to move player to
+     * @return {boolean} True if movement began, false otherwise (something in the way, not enough keys, etc.)
      */
-    var movePlayerTo = function(zone){
-      //Start walking animation
-      player.animations.play('top_moving');
-      zone = mapManager.findByNameIn(zone, 'zones');
-      if(!!zone){
-        var course = mapManager.findInPath(player, zone),
-          props = {}, safe = true;
+    var movePlayerTo = function(zoneName){
+      if(!moving){
+        targetZone = mapManager.findByNameIn(zoneName, 'zones');
 
-        if(course.objects instanceof Array && course.objects.length > 0){
-          for(var objIdx=0;objIdx<course.objects.length;objIdx++){
-            var objectInfo = course.objects[objIdx];
-            switch (objectInfo.group) {
-            case 'walls':
-              safe = false;
-              break;
-            case 'doors':
-              if(deathRow.key.length>0){
-                deathRow.key.pop();
-                deathRow.message.push(strings.door.unlocked);
-                deathRow.door.push(objectInfo.sprite);
-              }else if(keys>0){
-                keys--;
-                deathRow.message.push(strings.door.unlocked);
-                deathRow.door.push(objectInfo.sprite);
-              }else{
-                deathRow.message.push(strings.door.locked);
-                safe = false;
-              }
-              break;
-            case 'items':
-              deathRow.inventory.push(objectInfo.sprite);
-              deathRow.message.push(strings.item[objectInfo.name]);
-              break;
-            case 'keys':
-              deathRow.key.push(objectInfo.sprite);
-              deathRow.message.push(strings.key);
-              break;
-            case 'events':
-              //TODO acknowledge events
-              break;
-            default:
-              break;
-            }
-            if(!safe){break;}
-          }
-        }
-
-        if(!!safe){
-          deathRow.message.push(zone.long);
-          for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
-            if(zone.hasOwnProperty(directions[dirIdx].short)){
-              deathRow.message.push('To the ' + directions[dirIdx].long + ' is ' +
-                mapManager.findByNameIn(zone[directions[dirIdx].short], 'zones').short);
+        //Check to make sure the target zone exists
+        if(targetZone instanceof  Phaser.Sprite){
+          if(targetZone.x === activeZone.x && targetZone.y === activeZone.y){
+            examine();
+            return false;
+          }else{
+            activeCourse = mapManager.findInPath(player, targetZone);
+            //Check if objects in the way
+            if(activeCourse.contains.hasOwnProperty('walls')){
+              //There's a wall in the way
+              UIService.message(strings.wall);
+              return false;
+            }else if(activeCourse.contains.hasOwnProperty('doors') && activeCourse.contains.doors.length > keys){
+              //Not enough keys to continue
+              UIService.message(strings.door.locked);
+              return false;
+            }else{
+              //Begin Moving
+              player.animations.play('top_moving');
+              moving = true;
+              var props = {},
+                time = (Math.abs(player[activeCourse.direction]-targetZone[activeCourse.direction])/speed);
+              props[activeCourse.direction] = targetZone[activeCourse.direction];
+              moveTween = game.add.tween(player);
+              moveTween.onComplete.add(doneMovingPlayer, this);
+              moveTween.to(props, time, Phaser.Easing.Linear.None);
+              moveTween.start();
+              activeZone = null;
+              return true;
             }
           }
-        }
-
-        if(typeof course.direction === 'string' && !!safe){
-          props[course.direction] = zone[course.direction];
-          var time = (Math.abs(player[course.direction]-zone[course.direction])/speed);
-          moveTween = game.add.tween(player);
-          moveTween.onComplete.add(doneMovingPlayer, this);
-          moveTween.to(props, time, Phaser.Easing.Linear.None);
-          moveTween.start();
-          activeZone = zone;
         }else{
-          doneMovingPlayer.apply(this,[]);
+          throw new Error('The zone \'' + zoneName + ' does not exist. Cannot move player there.');
         }
-
+      }else{
+        return false;
       }
     };
 
     /**
-     * Callback run when player is done moving (or can't move)
+     * Callback run when player is done moving
      */
     var doneMovingPlayer = function(){
-      keys+=deathRow.key.length;
-      for(var keyi=0;keyi<deathRow.key.length;keyi++){
-        deathRow.key[keyi].kill();
-      }
-      for(var invi=0;invi<deathRow.inventory.length;invi++){
-        inventory.push(deathRow.inventory[invi]);
-        deathRow.inventory[invi].kill();
-      }
-      for(var doori=0;doori<deathRow.door.length;doori++){
-        deathRow.door[doori].kill();
-      }
-      UIService.message(deathRow.message);
-      deathRow.key=[];
-      deathRow.inventory = [];
-      deathRow.door = [];
-      deathRow.message = [];
+      activeZone = targetZone;
+      targetZone = null;
       player.animations.stop('top_moving', true);
+      examine();
+      moving = false;
+    };
+
+    /**
+     * Run on game update, every frame (MUST BE LIGHTWEIGHT)
+     */
+    var update = function(){
+      try {
+        if (moving && activeCourse.locations.hasOwnProperty(player[activeCourse.direction])) {
+          for (var i = 0; i < activeCourse.locations[player[activeCourse.direction]].length; i++) {
+            switch (activeCourse.locations[player[activeCourse.direction]][i].group) {
+            case 'items':
+              inventory.push(activeCourse.locations[player[activeCourse.direction]][i].sprite.kill());
+              break;
+            case 'keys':
+              keys++;
+              activeCourse.locations[player[activeCourse.direction]][i].sprite.kill();
+              break;
+            case 'events':
+              //performEvent(activeCourse.locations[player[activeCourse.direction]][i].sprite.name);
+              break;
+            case 'doors':
+              activeCourse.locations[player[activeCourse.direction]][i].sprite.kill();
+              break;
+            default:
+              break;
+            }
+          }
+        }
+      }catch(error){if(typeof console === 'object'){console.error(error);}}
     };
 
     /**
@@ -293,7 +314,9 @@ module.exports = (function (Phaser) {
 
       movePlayerTo: movePlayerTo,
 
-      capabilities: constructCapabilities()
+      capabilities: constructCapabilities(),
+
+      examine: examine
     };
 
   };

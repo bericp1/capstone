@@ -9,6 +9,7 @@ module.exports = (function(){
   return {
     preload: function(){
       this.game.stage.backgroundColor = style.color.one;
+      this.game.sound.volume = 0.4;
       var loadingText = this.game.add.text(
         this.game.world.centerX,
         this.game.world.centerY,

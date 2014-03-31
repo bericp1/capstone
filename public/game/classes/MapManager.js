@@ -88,7 +88,18 @@ module.exports = (function (Phaser) {
       this.cache[groupName][by[i]][sprite[by[i]]][sprite[yb[i]]] = sprite.name;
     }
   };
-
+  /**
+   * Returns the objects in the path connecting the two sprites
+   * @param player {Phaser.Sprite}
+   * @param zone {Phaser.Sprite}
+   * @param groups {(Array|string|*)}
+   * @returns {{
+   *    direction: string,
+   *    objects: Array.<{name: string, group: string, distance: number, sprite: Phaser.Sprite}>,
+   *    locations: Object<number,Array.<{name: string, group: string, distance: number, sprite: Phaser.Sprite}>>,
+   *    contains: Object.<string,Array.<{name: string, group: string, distance: number, sprite: Phaser.Sprite}>>
+   *  }}
+   */
   MapManager.prototype.findInPath = function(player, zone, groups){
     if(player instanceof Phaser.Sprite && zone instanceof Phaser.Sprite){
       if(typeof groups === 'string'){
@@ -110,30 +121,34 @@ module.exports = (function (Phaser) {
         return {};
       }
 
-      if(groups instanceof Array){
-        var result = [];
-        for(var groupIndex=0;groupIndex<groups.length;groupIndex++){
-          var groupName = groups[groupIndex];
-          if(this.cache[groupName][mainParam].hasOwnProperty(player[mainParam])){
-            for(var spriteLocation in this.cache[groupName][mainParam][player[mainParam]]){
-              if(this.cache[groupName][mainParam][player[mainParam]].hasOwnProperty(spriteLocation)){
-                var offsetFromPlayer = (spriteLocation - player[checkParam]);
-                if((offsetFromPlayer * (spriteLocation - zone[checkParam])) <= 0){
-                  //In between zone and player. In the way!!!!
-                  var spriteName = this.cache[groupName][mainParam][player[mainParam]][spriteLocation],
-                    sprite = this.findByNameIn(spriteName, groupName);
-                  if(sprite.visible)
-                    result.push({name:spriteName,group:groupName,distance:Math.abs(offsetFromPlayer),sprite:sprite});
+      var objects = [];
+      var locations = {};
+      var contains = {};
+      for(var groupIndex=0;groupIndex<groups.length;groupIndex++){
+        var groupName = groups[groupIndex];
+        if(this.cache[groupName][mainParam].hasOwnProperty(player[mainParam])){
+          for(var spriteLocation in this.cache[groupName][mainParam][player[mainParam]]){
+            if(this.cache[groupName][mainParam][player[mainParam]].hasOwnProperty(spriteLocation)){
+              var offsetFromPlayer = (spriteLocation - player[checkParam]);
+              if((offsetFromPlayer * (spriteLocation - zone[checkParam])) <= 0){
+                //In between zone and player. In the way!!!!
+                var spriteName = this.cache[groupName][mainParam][player[mainParam]][spriteLocation],
+                  sprite = this.findByNameIn(spriteName, groupName);
+                if(sprite.visible) {
+                  var objectInfo = {name: spriteName, group: groupName, distance: Math.abs(offsetFromPlayer), sprite: sprite};
+                  objects.push(objectInfo);
+                  if(!locations.hasOwnProperty(sprite[checkParam])) locations[sprite[checkParam]] = [];
+                  locations[sprite[checkParam]].push(objectInfo);
+                  if(!contains.hasOwnProperty(groupName)) contains[groupName] = [];
+                  contains[groupName].push(objectInfo);
                 }
               }
             }
           }
         }
-        result.sort(MapManager.sortByDistance);
-        return {direction: checkParam, objects: result};
-      }else{
-        return {direction: checkParam};
       }
+      objects.sort(MapManager.sortByDistance);
+      return {direction: checkParam, objects: objects, locations: locations, contains: contains};
     }
   };
 

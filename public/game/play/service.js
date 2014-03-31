@@ -1,5 +1,7 @@
-module.exports = ['$window', 'GamePlayInputParserService', function ($window, ParserService) {
+module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', function ($window, ParserService, $scope) {
   'use strict';
+
+  var strings = require('../strings');
 
   /**
    * Number of times to allow the game to be rebooted.
@@ -19,6 +21,23 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
    * @type {{Object}}
    */
   var capabilities = {};
+
+  /**
+   * The current game. Null when not managing
+   */
+  this.game = null;
+
+  /**
+   * All states
+   * @type {{string: {}}}
+   */
+  this.states = {};
+
+  /**
+   * Current game input
+   * @type {string}
+   */
+  this.input = '';
 
   /**
    * Messages that should be shown in output
@@ -44,19 +63,19 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
       }
       me.game = game;
 
-      var states = {
-        '_global': require('./states/global')(me),
+      me.states = {
+        '_global': require('./states/global'),
         'load': require('./states/load'),
         'title': require('./states/title'),
         'map': require('./states/map')(me)
       };
-      for(var stateName in states){
-        if(states.hasOwnProperty(stateName)){
+      for(var stateName in me.states){
+        if(me.states.hasOwnProperty(stateName)){
           if(stateName.indexOf('_') !== 0){
-            me.game.state.add(stateName, states[stateName]);
+            me.game.state.add(stateName, me.states[stateName]);
           }
-          if(states[stateName].hasOwnProperty('capabilities')){
-            capabilities[stateName] = states[stateName].capabilities;
+          if(me.states[stateName].hasOwnProperty('capabilities')){
+            capabilities[stateName] = me.states[stateName].capabilities;
           }
         }
       }
@@ -69,16 +88,30 @@ module.exports = ['$window', 'GamePlayInputParserService', function ($window, Pa
 
   /**
    * Appends message to outputable array
-   * @param message {(Array.<string>|string)}
+   * @param messages {(Array.<string>|string)}
    */
-  this.message = function(message){
-    if(message instanceof Array){
-      for(var i=0;i<message.length;i++){
-        this.message(message[i]);
-      }
-    }else{
-      this.messages.push(message);
-      jQuery('textarea').val(jQuery('textarea').val() + '\n' + message);
+  this.message = function(messages){
+    if(!(messages instanceof Array)){
+      messages = [messages];
     }
+    this.messages = messages;
+    $scope.$apply();
+  };
+
+  /**
+   * Run a command through the input parser
+   */
+  this.run = function(){
+    if(!ParserService.run(this.input)){
+      this.message(strings.noSuchCommand(this.input));
+    }
+    this.input = '';
+  };
+
+  /**
+   * Examine the current zone
+   */
+  this.examine = function(){
+    this.states.map.examine();
   };
 }];
