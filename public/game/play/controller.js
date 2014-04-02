@@ -14,7 +14,7 @@ module.exports = ['$scope', '$location', 'GamePlayService', function($scope, $lo
       input: {
         value: PlayService.input,
         run: function(){
-          PlayService.run.apply(PlayService);
+          PlayService.runFromInput.apply(PlayService);
         }
       },
       output: []

@@ -152,6 +152,12 @@ module.exports = (function (Phaser) {
     }
   };
 
+  /**
+   * Return a sprite by searching for its name within a group
+   * @param name {string}
+   * @param group {Phaser.Group|string}
+   * @returns {*}
+   */
   MapManager.prototype.findByNameIn = function(name, group){
     if(name instanceof Phaser.Sprite) return name;
     if(typeof group === 'string') group = this.objects[group];

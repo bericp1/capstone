@@ -66,7 +66,7 @@ module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', functio
       me.states = {
         '_global': require('./states/global'),
         'load': require('./states/load'),
-        'title': require('./states/title'),
+        'title': require('./states/title')(me),
         'map': require('./states/map')(me)
       };
       for(var stateName in me.states){
@@ -101,10 +101,17 @@ module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', functio
   /**
    * Run a command through the input parser
    */
-  this.run = function(){
-    if(!ParserService.run(this.input)){
+  this.run = function(command){
+    if(!ParserService.run(command)){
       this.message(strings.noSuchCommand(this.input));
     }
+  };
+
+  /**
+   * Run command from input
+   */
+  this.runFromInput = function(){
+    this.run(this.input);
     this.input = '';
   };
 

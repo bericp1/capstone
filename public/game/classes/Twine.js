@@ -22,36 +22,44 @@ module.exports = (function () {
     }
   };
 
-  var constructSpan = function(property, value, contents){
+  var constructSpanFromStyle = function(property, value, contents){
     return '<span style="' + property + ':' + value + ';">' + contents + '</span>';
+  };
+  var constructSpanFromAttr = function(attr, value, contents){
+    return '<span ' + attr + '="' + value + '">' + contents + '</span>';
+  };
+
+  Twine.prototype.class = function(classes){
+    if(classes instanceof Array) classes = classes.join(' ');
+    this.working = constructSpanFromAttr('class', classes, this.working);
   };
 
   Twine.prototype.family = function(family){
-    this.working = constructSpan('font-family', family, this.working);
+    this.working = constructSpanFromStyle('font-family', family, this.working);
   };
 
   Twine.prototype.size = function(size){
     if(typeof size === 'number') size = '' + size + 'px';
-    this.working = constructSpan('font-size', size, this.working);
+    this.working = constructSpanFromStyle('font-size', size, this.working);
   };
 
   Twine.prototype.color = function(color){
-    this.working = constructSpan('color', color, this.working);
+    this.working = constructSpanFromStyle('color', color, this.working);
   };
 
   Twine.prototype.backgroundColor = function(color){
-    this.working = constructSpan('padding', '10px', this.working);
-    this.working = constructSpan('background-color', color, this.working);
+    this.working = constructSpanFromStyle('padding', '10px', this.working);
+    this.working = constructSpanFromStyle('background-color', color, this.working);
   };
 
   Twine.prototype.highlight = Twine.prototype.backgroundColor;
 
   Twine.prototype.weight = function(weight){
-    this.working = constructSpan('font-weight', weight, this.working);
+    this.working = constructSpanFromStyle('font-weight', weight, this.working);
   };
 
   Twine.prototype.style = function(style){
-    this.working = constructSpan('font-style', style, this.working);
+    this.working = constructSpanFromStyle('font-style', style, this.working);
   };
 
   Twine.prototype.commit = function(){
