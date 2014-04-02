@@ -117,6 +117,15 @@ module.exports = (function (Phaser) {
       {short:'nw',long:'northwest', angle:-3*Math.PI/4}
     ];
 
+    var preload = function(){
+      keys = 0;
+      inventory = [];
+      moving = false;
+      targetZone = null;
+      activeZone = null;
+      activeCourse = null;
+    };
+
     /**
      * Run on state load to create the stage
      */
@@ -162,7 +171,7 @@ module.exports = (function (Phaser) {
       for(var i=0;i<directions.length;i++){
         if(zone.hasOwnProperty(directions[i].short)){
           messages.push(new Twine(strings.surroundings(
-            directions[i].long, mapManager.findByNameIn(targetZone[directions[i].short], 'zones').short
+            directions[i].long, mapManager.findByNameIn(zone[directions[i].short], 'zones').short
           ), {color: style.color.one}));
         }
       }
@@ -176,26 +185,28 @@ module.exports = (function (Phaser) {
      */
     var movePlayerTo = function(zoneName){
       if(!moving){
-        targetZone = mapManager.findByNameIn(zoneName, 'zones');
+        var zone = mapManager.findByNameIn(zoneName, 'zones');
 
         //Check to make sure the target zone exists
-        if(targetZone instanceof  Phaser.Sprite){
-          if(targetZone.x === activeZone.x && targetZone.y === activeZone.y){
+        if(zone instanceof  Phaser.Sprite){
+          if(zone.x === activeZone.x && zone.y === activeZone.y){
             examine();
             return false;
           }else{
-            activeCourse = mapManager.findInPath(player, targetZone);
+            var course = mapManager.findInPath(player, zone, ['walls','doors','events']);
             //Check if objects in the way
-            if(activeCourse.contains.hasOwnProperty('walls')){
+            if(course.contains.hasOwnProperty('walls')){
               //There's a wall in the way
               UIService.message(strings.wall);
               return false;
-            }else if(activeCourse.contains.hasOwnProperty('doors') && activeCourse.contains.doors.length > keys){
+            }else if(course.contains.hasOwnProperty('doors') && course.contains.doors.length > keys){
               //Not enough keys to continue
               UIService.message(strings.door.locked);
               return false;
             }else{
               //Begin Moving
+              targetZone = zone;
+              activeCourse = course;
               player.animations.play('top_moving');
               moving = true;
               var props = {},
@@ -223,7 +234,9 @@ module.exports = (function (Phaser) {
     var doneMovingPlayer = function(){
       activeZone = targetZone;
       targetZone = null;
-      player.animations.stop('top_moving', true);
+      activeCourse = null;
+      player.animations.stop('top_moving');
+      player.frame = 0;
       examine();
       moving = false;
     };
@@ -233,24 +246,21 @@ module.exports = (function (Phaser) {
      */
     var update = function(){
       try {
-        if (moving && activeCourse.locations.hasOwnProperty(player[activeCourse.direction])) {
-          for (var i = 0; i < activeCourse.locations[player[activeCourse.direction]].length; i++) {
-            switch (activeCourse.locations[player[activeCourse.direction]][i].group) {
-            case 'items':
-              inventory.push(activeCourse.locations[player[activeCourse.direction]][i].sprite.kill());
-              break;
-            case 'keys':
-              keys++;
-              activeCourse.locations[player[activeCourse.direction]][i].sprite.kill();
-              break;
-            case 'events':
-              //performEvent(activeCourse.locations[player[activeCourse.direction]][i].sprite.name);
-              break;
-            case 'doors':
-              activeCourse.locations[player[activeCourse.direction]][i].sprite.kill();
-              break;
-            default:
-              break;
+        if (moving) {
+          for (var i = 0; i < activeCourse.objects.length; i++) {
+            if(player.overlap(activeCourse.objects[i].sprite) && !!activeCourse.objects[i].sprite.visible && !!player.visible){
+              switch (activeCourse.objects[i].group) {
+              case 'events':
+                UIService.run(activeCourse.objects[i].sprite.command, true);
+                break;
+              case 'doors':
+                keys--;
+                activeCourse.objects[i].sprite.kill();
+                break;
+              default:
+                break;
+              }
+              UIService.refresh();
             }
           }
         }
@@ -271,6 +281,101 @@ module.exports = (function (Phaser) {
       return false;
     };
 
+    var friendlyMove = function(direction){
+      if(!moving){
+        var newDirection = resolveDirection(direction);
+        if(!!newDirection){
+          var newZone = mapManager.findByNameIn(activeZone[newDirection.short], 'zones');
+          if(!!newZone){
+            player.rotation=newDirection.angle;
+            movePlayerTo(newZone);
+          }else{
+            UIService.message(strings.noSuchZone);
+          }
+        }else{
+          UIService.message(strings.badDirection);
+        }
+      }else{
+        UIService.message(strings.stillMoving);
+      }
+    };
+
+    var pickup = function(item){
+      var surroundingItems, groups = ['keys', 'items'];
+      if(typeof item === 'string'){
+        if(item === 'key' || item === 'keys'){
+          groups = ['keys'];
+          item = null;
+        }else if(item === 'item' || item === 'items'){
+          groups = ['items'];
+          item = null;
+        }
+      }
+      var add = function(toAdd){
+        if(toAdd.group === 'keys'){
+          keys++;
+          toAdd.sprite.kill();
+        }else if(toAdd.group === 'items'){
+          inventory.push(toAdd.sprite.kill());
+        }
+        UIService.refresh();
+      };
+      surroundingItems = mapManager.findAroundPlayer(player, groups);
+      if(surroundingItems.objects.length > 0){
+        var result = [];
+        for(var i=0;i<surroundingItems.objects.length;i++){
+          var obj = surroundingItems.objects[i];
+          if(typeof item === 'string'){
+            if(item === obj.name){
+              result.push(obj);
+              add(obj);
+            }
+          }else{
+            result.push(obj);
+            add(obj);
+          }
+        }
+        if(result.length>0){
+          return result;
+        }else{
+          return false;
+        }
+      }else{
+        return false;
+      }
+    };
+
+    var friendlyPickup = function(item){
+      var pickedUpItems = pickup(item);
+      if(!!pickedUpItems){
+        for(var i=0;i<pickedUpItems.length;i++){
+          var info = pickedUpItems[i];
+          if(info.group === 'keys'){
+            UIService.message(strings.key);
+          }else{
+            UIService.message(strings.item[info.name]);
+          }
+        }
+      }else{
+        UIService.message(strings.noPickup);
+      }
+    };
+
+    var friendlyKill = function(toKill){
+      if(toKill === 'gregory'){
+        player.kill();
+        if(typeof moveTween === 'object') moveTween.stop();
+        UIService.message('Gregory is dead!!! Why?!?!?!?');
+        setTimeout(function(){
+          game.state.start('dead');
+        }, 2000);
+      }
+    };
+
+    var win = function(){
+      game.state.start('win');
+    };
+
     /**
      * Construct capabilities partly from possible directions
      * @returns {Object.<string,(Object.<string,*>|string|Array.<*>)>}
@@ -282,22 +387,32 @@ module.exports = (function (Phaser) {
           {
             direction: 'The direction in which to move Gregory'
           },
-          function(direction){
-            var newDirection = resolveDirection(direction);
-            if(!!newDirection){
-              var newZone = mapManager.findByNameIn(activeZone[newDirection.short], 'zones');
-              if(!!newZone){
-                player.rotation=newDirection.angle;
-                movePlayerTo(newZone);
-              }else{
-                UIService.message(strings.noSuchZone);
-              }
-            }else{
-              UIService.message(strings.badDirection);
-            }
-          },
+          friendlyMove,
           'go'
-        ]
+        ],
+        'pickup': [
+          'Pickup items around or beneath you.',
+          {
+            item: 'A specific item or type of items to pickup'
+          },
+          friendlyPickup,
+          'grab'
+        ],
+        'kill': [
+          'Kill someone or something.',
+          {
+            '(someone or something)': 'The person or thing to kill'
+          },
+          friendlyKill,
+          'murder'
+        ],
+        'die': 'kill Gregory',
+        'lose': 'kill Gregory',
+        'win': {
+          description: 'Win the game.',
+          action: win,
+          admin: true
+        }
       };
       for(var dirIdx=0;dirIdx<directions.length;dirIdx++){
         var direction = directions[dirIdx];
@@ -308,6 +423,8 @@ module.exports = (function (Phaser) {
     };
 
     return {
+      preload: preload,
+
       create: create,
 
       update: update,
@@ -316,7 +433,25 @@ module.exports = (function (Phaser) {
 
       capabilities: constructCapabilities(),
 
-      examine: examine
+      examine: examine,
+
+      getKeys: function(){
+        return keys;
+      },
+
+      setKeys: function(){
+        if(typeof arguments[0] === 'number')
+          keys = arguments[0];
+      },
+
+      getInventory: function(){
+        return keys;
+      },
+
+      setInventory: function(){
+        if(arguments[0] instanceof Array)
+          inventory = arguments[0];
+      }
     };
 
   };

@@ -21,7 +21,7 @@
                  "name":"trap0",
                  "properties":
                     {
-
+                     "command":"kill gregory"
                     },
                  "type":"event",
                  "visible":true,
@@ -35,7 +35,7 @@
                  "name":"finish",
                  "properties":
                     {
-
+                     "command":"win"
                     },
                  "type":"event",
                  "visible":true,
@@ -115,7 +115,8 @@
                     {
                      "long":"Gregory is avoiding the mysterious tile.",
                      "s":"trap0se",
-                     "short":"a way around"
+                     "short":"a way around",
+                     "w":"trap0n"
                     },
                  "type":"zone",
                  "visible":true,
@@ -180,7 +181,7 @@
                  "name":"finish",
                  "properties":
                     {
-                     "long":"This looks like the way home!",
+                     "long":"This looks like the way home! Tell Gregory!",
                      "s":"hall0",
                      "short":"the way home"
                     },

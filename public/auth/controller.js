@@ -4,7 +4,7 @@ module.exports = ['$scope', '$routeParams', '$location', 'AuthUserService', func
 
   $scope.state = {
     active: $routeParams.mode,
-    returnPath: $routeParams.return,
+    returnPath: $routeParams['return'],
     status: '',
     message: '',
     loading: false

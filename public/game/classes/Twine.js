@@ -29,7 +29,7 @@ module.exports = (function () {
     return '<span ' + attr + '="' + value + '">' + contents + '</span>';
   };
 
-  Twine.prototype.class = function(classes){
+  Twine.prototype.classes = function(classes){
     if(classes instanceof Array) classes = classes.join(' ');
     this.working = constructSpanFromAttr('class', classes, this.working);
   };

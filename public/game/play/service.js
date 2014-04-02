@@ -45,6 +45,12 @@ module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', functio
    */
   this.messages = [];
 
+  this.keys = 0;
+
+  this.inventory = [];
+
+  this.admin = false;
+
   /**
    * Beginning managing game
    * @param game Phaser.Game
@@ -67,8 +73,27 @@ module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', functio
         '_global': require('./states/global'),
         'load': require('./states/load'),
         'title': require('./states/title')(me),
-        'map': require('./states/map')(me)
+        'map': require('./states/map')(me),
+        'win': require('./states/win'),
+        'dead': require('./states/dead')
       };
+
+      $scope.$watch(me.states.map.getInventory, function(){
+        me.inventory = me.states.map.getInventory();
+      }, true);
+
+      $scope.$watch(function(){return me.inventory;}, function(){
+        me.states.map.setInventory(me.inventory);
+      }, true);
+
+      $scope.$watch(me.states.map.getKeys, function(){
+        me.keys = me.states.map.getKeys();
+      }, true);
+
+      $scope.$watch(function(){return me.keys;}, function(){
+        me.states.map.setKeys(me.keys);
+      }, true);
+
       for(var stateName in me.states){
         if(me.states.hasOwnProperty(stateName)){
           if(stateName.indexOf('_') !== 0){
@@ -95,14 +120,14 @@ module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', functio
       messages = [messages];
     }
     this.messages = messages;
-    $scope.$apply();
+    this.refresh();
   };
 
   /**
    * Run a command through the input parser
    */
-  this.run = function(command){
-    if(!ParserService.run(command)){
+  this.run = function(command, admin){
+    if(!ParserService.run(command, admin || this.admin) && !admin){
       this.message(strings.noSuchCommand(this.input));
     }
   };
@@ -120,5 +145,12 @@ module.exports = ['$window', 'GamePlayInputParserService', '$rootScope', functio
    */
   this.examine = function(){
     this.states.map.examine();
+  };
+
+  /**
+   * Check for keys, inventory, etc.
+   */
+  this.refresh = function(){
+    $scope.$apply();
   };
 }];

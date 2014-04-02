@@ -11,18 +11,26 @@ module.exports = (function () {
           'command': 'Command to get information about'
         },
         function(){
-          if(arguments.length === 0){
-            switch(this.game.state.current){
-            case 'title':
-              this.message(strings.help);
-              break;
-            case 'map':
-              this.examine();
-              break;
-            }
-          }else{
+          var mode;
+          if(arguments.length > 0) {
+            mode = 'help';
+          }else {
+            mode = this.game.state.current;
+          }
+          switch(mode){
+          case 'title':
+            this.message(strings.help);
+            break;
+          case 'map':
+            this.examine();
+            break;
+          case 'help':
             var args = Array.prototype.slice.call(arguments);
             this.message('Helpful stuff is supposed to be here for the following command: ' + args.join(' '));
+            break;
+          default:
+            this.message('Wait a minute... where are we?');
+            break;
           }
         },
         'info'

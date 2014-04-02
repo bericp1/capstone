@@ -3,6 +3,11 @@ module.exports = (function (Phaser) {
 
   var MoveError = require('./MoveError');
 
+  /**
+   * @name MapManager
+   * @param map
+   * @constructor
+   */
   var MapManager = function(map){
     this.map = map;
     this.game = map.game;
@@ -149,6 +154,44 @@ module.exports = (function (Phaser) {
       }
       objects.sort(MapManager.sortByDistance);
       return {direction: checkParam, objects: objects, locations: locations, contains: contains};
+    }
+  };
+
+  MapManager.prototype.findAroundPlayer = function(player, groups){
+    if(player instanceof Phaser.Sprite){
+      if(typeof groups === 'string'){
+        groups = [groups];
+      }else if(typeof groups === 'undefined'){
+        groups = this.groups;
+      }
+      var unit = player.width,
+        locations = [
+          {location: 'w', x:player.x - unit,y: player.y},
+          {location: 'e', x:player.x + unit,y: player.y},
+          {location: 'n', y:player.y - unit,x: player.x},
+          {location: 's', y:player.y + unit,x: player.x},
+          {location: 'o', x:player.x, y:player.y}
+        ],
+        result = {
+          objects: [],
+          locations: {}
+        };
+      for(var groupIdx=0;groupIdx<locations.length;groupIdx++){
+        var groupName = groups[groupIdx];
+        if(this.objects.hasOwnProperty(groupName)){
+          for(var objIndex=0;objIndex<this.objects[groupName].children.length;objIndex++){
+            var obj = this.objects[groupName].children[objIndex];
+            for(var locIdx=0;locIdx<locations.length;locIdx++){
+              if(obj.x === locations[locIdx].x && obj.y === locations[locIdx].y){
+                var objInfo = {name: obj.name, group: groupName, sprite: obj, distance: unit};
+                result.objects.push(objInfo);
+                result.locations[locations[locIdx].location] = objInfo;
+              }
+            }
+          }
+        }
+      }
+      return result;
     }
   };
 
