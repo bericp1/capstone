@@ -4,15 +4,19 @@
             <h1>Play <span style="font-family: 'Henny Penny'; font-size: 30px; vertical-align: middle;">Not Home</span>!<span class="account-box" auth-account-box="state.returnPath"></span></h1>
         </div>
     </div>
-    <div class="row-main well clearfix">
-        <div class="game-play-main">
-            <div game-phaser="state.game.phaser" game-phaser-config="state.game.config" class="game-canvas-container"></div>
-        </div>
-        <div class="game-play-io">
-            <div class="game-play-output form-control input-block-level" game-play-output="state.game.output"></div>
-            <input class="game-play-input form-control input-block-level" game-play-input="state.game.input.value" game-play-run-command="state.game.input.run" auto-focus>
-        </div>
+</div>
+<div class="row-main well clearfix">
+    <div class="game-play-main">
+        <div game-phaser="state.game.phaser" game-phaser-config="state.game.config" class="game-canvas-container"></div>
     </div>
+    <div class="game-play-io">
+        <div class="game-play-output form-control input-block-level" game-play-output="state.game.output"></div>
+        <input class="game-play-input form-control input-block-level" game-play-input="state.game.input.value" game-play-run-command="state.game.input.run" auto-focus>
+        <div class="game-play-inventory"><div class="title">Inventory:</div><div ng-repeat="item in state.game.inventory" class="label label-default">{{item}}</div></div>
+        <div class="game-play-keys"><div class="title">Keys:</div><div class="number" ng-bind="state.game.keys"></div></div>
+    </div>
+</div>
+<div class="game-play-container container">
     <div class="row-fluid">
         <div class="text-center">
             Try "help" at any time if you're lost.

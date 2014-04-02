@@ -56,7 +56,7 @@ module.exports = (function (Phaser) {
 
     /**
      * The player's inventory
-     * @type {Array.<Phaser.Sprite>}
+     * @type {Array.<string>}
      */
     var inventory = [];
 
@@ -316,7 +316,7 @@ module.exports = (function (Phaser) {
           keys++;
           toAdd.sprite.kill();
         }else if(toAdd.group === 'items'){
-          inventory.push(toAdd.sprite.kill());
+          inventory.push(toAdd.sprite.kill().name);
         }
         UIService.refresh();
       };
@@ -366,9 +366,7 @@ module.exports = (function (Phaser) {
         player.kill();
         if(typeof moveTween === 'object') moveTween.stop();
         UIService.message('Gregory is dead!!! Why?!?!?!?');
-        setTimeout(function(){
-          game.state.start('dead');
-        }, 2000);
+        game.state.start('dead');
       }
     };
 
@@ -445,7 +443,7 @@ module.exports = (function (Phaser) {
       },
 
       getInventory: function(){
-        return keys;
+        return inventory;
       },
 
       setInventory: function(){

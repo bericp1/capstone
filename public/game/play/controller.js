@@ -17,7 +17,9 @@ module.exports = ['$scope', '$location', 'GamePlayService', function($scope, $lo
           PlayService.runFromInput.apply(PlayService);
         }
       },
-      output: []
+      output: [],
+      inventory: PlayService.inventory,
+      keys: PlayService.keys
     }
   };
 
@@ -40,5 +42,13 @@ module.exports = ['$scope', '$location', 'GamePlayService', function($scope, $lo
   $scope.$watch(function(){return PlayService.messages;}, function(){
     $scope.state.game.output = PlayService.messages;
   }, true);
+
+  $scope.$watch(function(){return PlayService.keys;}, function(){
+    $scope.state.game.keys = PlayService.keys;
+  });
+
+  $scope.$watch(function(){return PlayService.inventory;}, function(){
+    $scope.state.game.inventory = PlayService.inventory;
+  },true);
 
 }];
