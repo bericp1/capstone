@@ -21,7 +21,8 @@ var style = {
   color: colorSchemes.parrot,
   font: {
     title: 'Henny Penny',
-    regular: 'Fjalla One'
+    regular: 'Fjalla One',
+    console: 'monospace'
   }
 };
 

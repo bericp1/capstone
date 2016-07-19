@@ -1,11 +1,12 @@
-module.exports = ['GamePlayInputParserService', function (ParserService) {
+module.exports = [function () {
   'use strict';
   return {
-    restrict: 'AC',
+    restrict: 'A',
     replace: true,
     templateUrl: 'game/play/input/index.tmpl',
     scope: {
-      input: '=gamePlayInput'
+      input: '=gamePlayInput',
+      run: '=gamePlayRunCommand'
     },
     link: function ($scope, $element) {
       $element.val($scope.input);
@@ -14,9 +15,8 @@ module.exports = ['GamePlayInputParserService', function (ParserService) {
       }, true);
       $element
         .on('keyup', function(event){
-          if(event.which===13 && !!ParserService.ready){
-            ParserService.run($scope.input);
-            $scope.input = '';
+          if(event.which===13){
+            $scope.run();
           }else{
             $scope.input = $element.val();
           }

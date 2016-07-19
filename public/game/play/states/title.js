@@ -1,4 +1,4 @@
-module.exports = (function () {
+module.exports = function (UIService) {
   'use strict';
 
   var style = require('../../style'),
@@ -17,7 +17,7 @@ module.exports = (function () {
 
       var titleText = this.game.add.text(
         this.game.world.centerX,
-        100,
+        150,
         strings.title,
         {
           font: 'bold 50px ' + style.font.title,
@@ -27,7 +27,7 @@ module.exports = (function () {
       );
       titleText.anchor.setTo(0.5);
 
-      var blinkingPlayer = this.game.add.sprite(this.game.world.centerX, 150, 'player_front_blink');
+      var blinkingPlayer = this.game.add.sprite(this.game.world.centerX, 200, 'player_front_blink');
       blinkingPlayer.anchor.setTo(0.5, 0);
       blinkingPlayer.scale.setTo(0.35);
       blinkingPlayer.animations.add('blink',
@@ -43,37 +43,63 @@ module.exports = (function () {
         ], 20, true);
       blinkingPlayer.animations.play('blink');
 
-      var startText = this.game.add.text(
+      var authorText = this.game.add.text(
         this.game.world.centerX,
-        435,
-        strings.start,
+        485,
+        strings.author,
         {
           font: '30px ' + style.font.regular,
           fill: style.color.dark,
           align: 'center'
         }
       );
-      startText.anchor.setTo(0.5);
+      authorText.anchor.setTo(0.5);
 
-      var startCommandsText = this.game.add.text(
-        this.game.world.centerX,
-        510,
-        strings.startCommands,
+      var nameText = this.game.add.text(
+        this.game.world.centerX + 66,
+        485,
+        'Brandon Phillips',
         {
-          font: '26px ' + style.font.regular,
-          fill: style.color.dark,
+          font: '31px ' + style.font.regular,
+          fill: style.color.one,
           align: 'center'
         }
       );
-      startCommandsText.anchor.setTo(0.5);
+      nameText.anchor.setTo(0.5);
+
+      UIService.run('help');
+
+//      var startText = this.game.add.text(
+//        this.game.world.centerX,
+//        435,
+//        strings.start,
+//        {
+//          font: '30px ' + style.font.regular,
+//          fill: style.color.dark,
+//          align: 'center'
+//        }
+//      );
+//      startText.anchor.setTo(0.5);
+//
+//      var startCommandsText = this.game.add.text(
+//        this.game.world.centerX,
+//        510,
+//        strings.startCommands,
+//        {
+//          font: '26px ' + style.font.regular,
+//          fill: style.color.dark,
+//          align: 'center'
+//        }
+//      );
+//      startCommandsText.anchor.setTo(0.5);
     },
 
     capabilities: {
       'start': [
         'Start the game.',
         {},
-        function(game){
-          game.state.start('map');
+        function(){
+          this.game.state.start('map');
         },
         'go'
       ],
@@ -82,10 +108,10 @@ module.exports = (function () {
         {
           'id': 'ID of save to load'
         },
-        function(game, saveID){
+        function(saveID){
           console.log('LOADING!!!', 'Save ID:', saveID);
         }
       ]
     }
   };
-})();
+};

@@ -1,7 +1,7 @@
-module.exports = [function () {
+module.exports = ['$injector', function ($injector) {
   'use strict';
 
-  var DictionaryEntry = function(description, args, action, aliases){
+  var DictionaryEntry = function(description, args, action, aliases, admin){
     if(typeof description === 'string'){
       this.description = description;
     }else{
@@ -24,6 +24,11 @@ module.exports = [function () {
     }else{
       this.aliases = [];
     }
+    if(typeof admin === 'boolean'){
+      this.admin = admin;
+    }else{
+      this.admin = false;
+    }
   };
 
   var me = this;
@@ -45,10 +50,11 @@ module.exports = [function () {
           //Parse Verbs and Aliases
           for(var verb in stateCapabilities){
             if(stateCapabilities.hasOwnProperty(verb)){
+              verb = verb.toLowerCase();
               var verbDefinition = stateCapabilities[verb];
               if(typeof verbDefinition === 'function'){
                 //Straight up action with no description or args
-                me.dictionary[state][verb] = new DictionaryEntry('', {}, verbDefinition, []);
+                me.dictionary[state][verb] = new DictionaryEntry('', {}, verbDefinition, [], false);
               }else if(typeof verbDefinition === 'string'){
                 //Alias
                 aliasesToParse[verb] = [verbDefinition, true];
@@ -58,7 +64,8 @@ module.exports = [function () {
                     description: verbDefinition[0] || '',
                     args: verbDefinition[1] || {},
                     action: verbDefinition[2] || '',
-                    aliases: verbDefinition[3] || []
+                    aliases: verbDefinition[3] || [],
+                    admin: verbDefinition[4]
                   };
                 }
                 //Full on verb def with description an everything
@@ -66,14 +73,15 @@ module.exports = [function () {
                   verbDefinition.description,
                   verbDefinition.args,
                   verbDefinition.action,
-                  verbDefinition.aliases
+                  verbDefinition.aliases,
+                  verbDefinition.admin
                 );
                 if(typeof verbDefinition.aliases === 'string'){
                   verbDefinition.aliases = [verbDefinition.aliases];
                 }
                 if(verbDefinition.aliases instanceof Array){
                   for(var i = 0; i < verbDefinition.aliases.length; i++){
-                    aliasesToParse[verbDefinition.aliases[i]] = [verb, false];
+                    aliasesToParse[verbDefinition.aliases[i].toLowerCase()] = [verb, false];
                   }
                 }
               }
@@ -85,7 +93,7 @@ module.exports = [function () {
               var aliasPair = aliasesToParse[alias],
                 fullVerb = aliasPair[0],
                 toPropegateToDictionary = aliasPair[1],
-                verbParts = fullVerb.trim().split(' '),
+                verbParts = fullVerb.trim().toLowerCase().split(' '),
                 mainVerb = verbParts[0];
               me.dictionary[state][alias] = new DictionaryEntry(
                 'An alias for "' + fullVerb + '"',
@@ -105,34 +113,53 @@ module.exports = [function () {
     }
   };
 
-  me.run = function(command){
-    var state = me.game.state.current;
-    var rawParts = command.split(' ');
-    var args = [];
-    for(var i = 0; i < rawParts.length; i++){
-      if(rawParts[i].trim() !== ''){
-        args.push(rawParts[i]);
+  /**
+   * Runs a command based on the currently built dictionary
+   * @returns {boolean} True if command found and run, false otherwise
+   */
+  me.run = function(command, admin){
+    if(typeof command === 'string'){
+      var state = me.game.state.current;
+      var rawParts = command.toLowerCase().split(' ');
+      var args = [];
+      for(var i = 0; i < rawParts.length; i++){
+        if(rawParts[i].trim() !== ''){
+          args.push(rawParts[i]);
+        }
       }
-    }
 
-    var verb = args.shift();
+      var verb = args.shift();
 
-    var doAction = function(state){
-      var action = me.dictionary[state][verb].action;
-      if(typeof action === 'function'){
-        args.unshift(me.game);
-        action.apply(me, args);
-      }else if(typeof action === 'string'){
-        me.run(action + ' ' + args.join(' '));
-      }
-    };
+      var doAction = function(state){
+        var action = me.dictionary[state][verb].action;
+        if(typeof action === 'function'){
+          if(!!me.dictionary[state][verb].admin){
+            if(!!admin){
+              action.apply($injector.get('GamePlayService'), args);
+              return true;
+            }else{
+              return false;
+            }
+          }else{
+            action.apply($injector.get('GamePlayService'), args);
+            return true;
+          }
+        }else if(typeof action === 'string'){
+          return me.run(action + ' ' + args.join(' '));
+        }else{
+          return false;
+        }
+      };
 
-    if(me.dictionary.hasOwnProperty(state)){
-      if(me.dictionary[state].hasOwnProperty(verb)){
-        doAction(state);
+      if(me.dictionary.hasOwnProperty(state) && me.dictionary[state].hasOwnProperty(verb)) {
+        return doAction(state);
       }else if(me.dictionary.hasOwnProperty('_global') && me.dictionary._global.hasOwnProperty(verb)){
-        doAction('_global');
+        return doAction('_global');
+      }else {
+        return false;
       }
+    }else{
+      return false;
     }
   };
 
